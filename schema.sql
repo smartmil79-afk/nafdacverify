@@ -3,7 +3,7 @@
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  full_name text, email text, phone text,
+  full_name text, username text unique check (username ~ '^[a-z0-9_]{3,20}$'), email text, phone text,
   role text not null default 'reporter' check (role in ('reporter','reviewer','admin')),
   created_at timestamptz not null default now()
 );
@@ -48,9 +48,10 @@ $$ select exists (select 1 from public.profiles where id = auth.uid() and role =
 -- Auto-create a profile the first time anyone signs up (Google, Apple or email)
 create function public.handle_new_user() returns trigger language plpgsql security definer set search_path = public as
 $$ begin
-  insert into public.profiles (id, full_name, email, phone)
+  insert into public.profiles (id, full_name, username, email, phone)
   values (new.id,
           coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name'),
+          lower(new.raw_user_meta_data->>'username'),
           new.email,
           new.raw_user_meta_data->>'phone')
   on conflict (id) do nothing;
@@ -58,6 +59,15 @@ $$ begin
 end $$;
 create trigger on_auth_user_created after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- Username helpers used by the sign-up and login screens
+create or replace function public.username_available(p_username text) returns boolean
+language sql security definer stable set search_path = public as
+$$ select not exists (select 1 from public.profiles where username = lower(p_username)) $$;
+create or replace function public.email_for_username(p_username text) returns text
+language sql security definer stable set search_path = public as
+$$ select email from public.profiles where username = lower(p_username) $$;
+grant execute on function public.username_available(text), public.email_for_username(text) to anon, authenticated;
 
 -- Row-level security
 alter table public.profiles enable row level security;

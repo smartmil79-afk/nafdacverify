@@ -68,6 +68,12 @@ footer{text-align:center;padding:35px 20px;color:#78847f;font-size:10px}
 .alert-item{display:flex;gap:13px;align-items:center;padding:12px 0;border-bottom:1px solid #eef2f0}
 .alert-item h3{font-size:14px;margin-bottom:4px}.alert-item p{font-size:11px;color:#748079}
 .alert-tips{background:#fff7e7;border:1px solid #ffe1aa;border-radius:14px;padding:14px;margin-top:15px;font-size:12px;line-height:1.7}
+.header-top{flex-wrap:wrap;gap:10px}
+.userbar{display:none;align-items:center;gap:8px;flex-wrap:wrap}
+.user-chip{display:flex;align-items:center;gap:8px;cursor:pointer;max-width:150px}
+.user-chip .n{font-size:12px;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.avatar{width:34px;height:34px;border-radius:50%;background:#d7ffe9;color:#075b43;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;overflow:hidden;flex-shrink:0}
+.avatar img{width:100%;height:100%;object-fit:cover}
 @media(min-width:700px){.actions{grid-template-columns:repeat(4,1fr)}.product-list{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
@@ -75,10 +81,12 @@ footer{text-align:center;padding:35px 20px;color:#78847f;font-size:10px}
 <header><div class="container">
 <div class="header-top">
 <div class="logo">Naija<span>Verify</span></div>
-<div class="header-actions">
+<div class="header-actions" id="guestActions">
 <button class="header-btn" onclick="openLogin()">Login</button>
 <button class="header-btn" onclick="openRegister()">Register</button>
-</div></div>
+</div>
+<div class="userbar" id="userBar"><button class="header-btn" onclick="showHome()">🏠 Home</button><div class="user-chip" onclick="goDashboard()" title="My dashboard"><div class="avatar" id="userAvatar"></div><span class="n" id="userName"></span></div><button class="header-btn" onclick="logout()">Logout</button></div>
+</div>
 <div class="hero"><h1>Check before you buy.</h1>
 <p>Search products and check official counterfeit and safety alerts in Nigeria.</p></div>
 <div class="search-box">
@@ -149,7 +157,7 @@ A product not appearing in this database does <strong>not</strong> automatically
 <h2>Reporter Login</h2>
 <p class="modal-subtitle">Login to report suspected counterfeit products and track your submitted reports.</p><div class="social"><div class="g-slot"></div><button type="button" class="social-btn" onclick="signInApple()">🍎 Continue with Apple</button></div><div class="divider">or use email</div>
 <form onsubmit="login(event)">
-<div class="form-group"><label>Email</label><input id="loginIdentifier" type="email" required placeholder="name@example.com"></div>
+<div class="form-group"><label>Username or email</label><input id="loginIdentifier" required autocomplete="username" placeholder="Username or email"></div>
 <div class="form-group"><label>Password</label><input id="loginPassword" type="password" required placeholder="Password"></div>
 <button class="primary-btn">Login</button>
 </form>
@@ -162,6 +170,7 @@ A product not appearing in this database does <strong>not</strong> automatically
 <p class="modal-subtitle">Registration is required before submitting counterfeit-product reports.</p><div class="social"><div class="g-slot"></div><button type="button" class="social-btn" onclick="signInApple()">🍎 Continue with Apple</button></div><div class="divider">or use email</div>
 <form onsubmit="register(event)">
 <div class="form-group"><label>Full Name *</label><input id="regName" required placeholder="Full name"></div>
+<div class="form-group"><label>Username *</label><input id="regUsername" required pattern="[A-Za-z0-9_]{3,20}" autocomplete="username" placeholder="3-20 letters, numbers or _"></div>
 <div class="form-group"><label>Email Address *</label><input id="regEmail" type="email" required placeholder="name@example.com"></div>
 <div class="form-group"><label>Phone Number *</label><input id="regPhone" required placeholder="080XXXXXXXX"></div>
 <div class="form-group"><label>Password *</label><input id="regPassword" type="password" minlength="8" required placeholder="Minimum 8 characters"></div>
@@ -189,6 +198,17 @@ A product not appearing in this database does <strong>not</strong> automatically
 <input type="file" id="reportPhoto" accept="image/*" style="margin-top:12px"></div></div>
 <button class="primary-btn">Submit Report</button>
 </form>
+</div></div>
+
+<div class="modal" id="verifyModal"><div class="modal-content">
+<span class="close" onclick="closeModal('verifyModal')">&times;</span>
+<h2>Verify your email</h2>
+<p class="modal-subtitle" id="verifySub"></p>
+<form onsubmit="verifyCode(event)">
+<div class="form-group"><label>Verification code</label><input id="verifyCode" required inputmode="numeric" maxlength="10" autocomplete="one-time-code" placeholder="Enter code" style="letter-spacing:6px;text-align:center;font-size:20px"></div>
+<button class="primary-btn">Verify email</button>
+</form>
+<div class="switch">Didn't get it? <a onclick="resendCode()">Resend code</a></div>
 </div></div>
 
 <div class="modal" id="alertModal"><div class="modal-content">
@@ -301,8 +321,9 @@ async function loadSessionUser(){
 if(!sb)return null;
 const {data:{session}}=await sb.auth.getSession();
 if(!session)return null;
-const {data:prof}=await sb.from("profiles").select("full_name,email,phone,role").eq("id",session.user.id).single();
-const u={id:session.user.id,name:(prof&&prof.full_name)||session.user.email,email:(prof&&prof.email)||session.user.email,phone:(prof&&prof.phone)||"",role:(prof&&prof.role)||"reporter"};
+const {data:prof}=await sb.from("profiles").select("full_name,username,email,phone,role").eq("id",session.user.id).single();
+const md=session.user.user_metadata||{};
+const u={id:session.user.id,avatar:md.avatar_url||md.picture||"",username:(prof&&prof.username)||"",name:(prof&&(prof.full_name||prof.username))||session.user.email,email:(prof&&prof.email)||session.user.email,phone:(prof&&prof.phone)||"",role:(prof&&prof.role)||"reporter"};
 sessionStorage.setItem("naijaCurrentUser",JSON.stringify(u));
 return u;
 }
@@ -387,6 +408,57 @@ const email=prompt("DEMO MODE: no real "+provider+" sign-in is configured.\nEnte
 if(email)socialLogin(provider,"",email,false);
 }
 
+/* EMAIL VERIFICATION */
+let pendingVerify=null;
+const genCode=()=>String(Math.floor(100000+Math.random()*900000));
+function openVerify(email){
+pendingVerify={email};
+$("verifySub").innerText="We sent a verification code to "+email+". Enter it below to activate your account.";
+$("verifyCode").value="";
+closeModal("registerModal");closeModal("loginModal");
+$("verifyModal").style.display="block";
+}
+async function verifyCode(event){
+event.preventDefault();
+if(!pendingVerify)return;
+const code=$("verifyCode").value.trim(),email=pendingVerify.email;
+if(sb){
+const {error}=await sb.auth.verifyOtp({email,token:code,type:"signup"});
+if(error){alert("Verification failed: "+error.message);return}
+await sb.auth.signOut(); /* verifying signs the user in; require a normal login */
+}else{
+const users=getUsers(),u=users.find(x=>x.email===email);
+if(!u||u.verifyCode!==code){alert("Invalid code.");return}
+u.verified=true;delete u.verifyCode;saveUsers(users);
+}
+pendingVerify=null;closeModal("verifyModal");
+alert("✅ Email verified successfully.\n\nYou can now log in with your username and password.");
+openLogin();
+}
+async function resendCode(){
+if(!pendingVerify)return;
+if(sb){const {error}=await sb.auth.resend({type:"signup",email:pendingVerify.email});alert(error?"Could not resend: "+error.message:"A new code has been sent.");return}
+const users=getUsers(),u=users.find(x=>x.email===pendingVerify.email);
+if(u){u.verifyCode=genCode();saveUsers(users);alert("DEMO MODE: your new code is "+u.verifyCode)}
+}
+
+/* TOP BAR: home button, name and avatar while logged in */
+function renderUserBar(){
+const u=getCurrentUser();
+$("guestActions").style.display=u?"none":"flex";
+$("userBar").style.display=u?"flex":"none";
+if(!u)return;
+const name=u.name||u.username||u.email||"User";
+$("userName").innerText=name;
+const ini=name.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+$("userAvatar").innerHTML=u.avatar?`<img src="${escapeHtml(u.avatar)}" alt="" referrerpolicy="no-referrer">`:escapeHtml(ini);
+}
+function showHome(){
+$("publicPage").style.display="block";$("reporterDashboard").style.display="none";$("adminDashboard").style.display="none";
+window.scrollTo({top:0,behavior:"smooth"});
+}
+function goDashboard(){const u=getCurrentUser();if(u)showDashboard(u.role==="reporter"?"reporter":"admin")}
+
 /* LOGIN */
 function openLogin(){closeModal("registerModal");$("loginModal").style.display="block"}
 function switchToRegister(){closeModal("loginModal");openRegister()}
@@ -395,14 +467,23 @@ function login(event){
 event.preventDefault();
 const id=$("loginIdentifier").value.trim().toLowerCase();
 const password=$("loginPassword").value;
-if(sb){(async()=>{const {error}=await sb.auth.signInWithPassword({email:id,password});if(error){alert("Login failed: "+error.message);return}const u=await loadSessionUser();closeModal("loginModal");showDashboard(u.role==="reporter"?"reporter":"admin")})();return}
+if(sb){(async()=>{
+let email=id;
+if(!id.includes("@")){const {data,error}=await sb.rpc("email_for_username",{p_username:id});if(error||!data){alert("Login failed: username or password is incorrect.");return}email=data}
+const {error}=await sb.auth.signInWithPassword({email,password});
+if(error){
+if(error.code==="email_not_confirmed"||/not confirmed/i.test(error.message)){await sb.auth.resend({type:"signup",email});openVerify(email);alert("Please verify your email first. We sent you a new code.");return}
+alert("Login failed: username/email or password is incorrect.");return}
+const u=await loadSessionUser();closeModal("loginModal");showDashboard(u.role==="reporter"?"reporter":"admin");
+})();return}
 /* Demo admin (prototype only, remove before production): admin@naijaverify.local / Admin12345 */
 if(id==="admin@naijaverify.local"&&password==="Admin12345"){
 sessionStorage.setItem("naijaCurrentUser",JSON.stringify({name:"System Administrator",email:id,role:"admin"}));
 closeModal("loginModal");showDashboard("admin");return;
 }
-const user=getUsers().find(u=>(u.email.toLowerCase()===id||normPhone(u.phone)===normPhone(id))&&u.password&&u.password===password);
-if(!user){alert("Login failed.\n\nPlease check your email/phone and password.");return}
+const user=getUsers().find(u=>(u.email.toLowerCase()===id||(u.username||"")===id||(normPhone(id)&&normPhone(u.phone)===normPhone(id)))&&u.password&&u.password===password);
+if(!user){alert("Login failed.\n\nPlease check your username/email and password.");return}
+if(user.verified===false){alert("Please verify your email first.");openVerify(user.email);return}
 sessionStorage.setItem("naijaCurrentUser",JSON.stringify(user));
 closeModal("loginModal");showDashboard("reporter");
 }
@@ -412,26 +493,35 @@ function openRegister(){closeModal("loginModal");$("registerModal").style.displa
 function register(event){
 event.preventDefault();
 const name=$("regName").value.trim();
+const username=$("regUsername").value.trim().toLowerCase();
 const email=$("regEmail").value.trim().toLowerCase();
 const phone=normPhone($("regPhone").value);
 const address="",nin="";
 const password=$("regPassword").value;
 if(phone.length!==11){alert("Please enter a valid Nigerian phone number, e.g. 080XXXXXXXX.");return}
-if(sb){(async()=>{const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name,phone},emailRedirectTo:location.origin+location.pathname}});if(error){alert("Registration failed: "+error.message);return}closeModal("registerModal");if(data.session){await loadSessionUser();showDashboard("reporter")}else alert("Check your email and click the confirmation link, then log in.")})();return}
+if(sb){(async()=>{
+const {data:free,error:e1}=await sb.rpc("username_available",{p_username:username});
+if(e1){alert("Could not check username: "+e1.message);return}
+if(!free){alert("That username is taken. Please choose another.");return}
+const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name,phone,username},emailRedirectTo:location.origin+location.pathname}});
+if(error){alert("Registration failed: "+error.message);return}
+if(data.session){await sb.auth.signOut();alert("Email confirmation is switched off in your Supabase project. Turn on Confirm email (Authentication > Providers > Email) and try again.");return}
+openVerify(email);
+})();return}
 const users=getUsers();
 if(users.some(u=>u.email===email)){alert("An account with this email already exists.");return}
+if(users.some(u=>(u.username||"")===username)){alert("That username is taken.");return}
 if(users.some(u=>normPhone(u.phone)===phone)){alert("An account with this phone number already exists.");return}
+const code=genCode();
 const user={
-id:"USR-"+Date.now(),name,email,phone,address,
+id:"USR-"+Date.now(),name,email,phone,address,username,verified:false,verifyCode:code,
 /* Never store real NINs in localStorage; prototype only. */
 identityStatus:nin?"Provided - production verification required":"Not provided",
 password,role:"reporter",createdAt:new Date().toLocaleString()
 };
 users.push(user);saveUsers(users);
-sessionStorage.setItem("naijaCurrentUser",JSON.stringify(user));
-closeModal("registerModal");
-alert("Account created successfully.\n\nYou can now submit counterfeit-product reports.");
-showDashboard("reporter");
+alert("DEMO MODE: no email is sent. Your verification code is "+code);
+openVerify(email);
 }
 
 /* REPORTING */
@@ -490,6 +580,7 @@ renderReporterDashboard();
 
 /* DASHBOARDS */
 async function showDashboard(type){
+renderUserBar();
 await refreshReports();
 $("publicPage").style.display="none";
 $("reporterDashboard").style.display="none";
@@ -556,6 +647,7 @@ report.status=status;saveReports(reports);renderAdminDashboard();
 function logout(){
 if(sb)sb.auth.signOut();
 sessionStorage.removeItem("naijaCurrentUser");
+renderUserBar();
 $("publicPage").style.display="block";
 $("reporterDashboard").style.display="none";
 $("adminDashboard").style.display="none";
@@ -577,6 +669,7 @@ return String(v||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&g
 /* INIT */
 displayProducts(products);
 initGoogle();
+renderUserBar();
 (async()=>{
 await loadAlerts();
 if(sb){const u=await loadSessionUser();if(u)showDashboard(u.role==="reporter"?"reporter":"admin")}
