@@ -4,677 +4,325 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#087f5b">
-<title>NaijaVerify | Product Safety</title>
+<title>ChecknVerify | Product Safety</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,Helvetica,sans-serif;background:#f4f7f6;color:#17201d;min-height:100vh}
 button,input,select,textarea{font:inherit}
-header{background:linear-gradient(135deg,#075b43,#08a66d);color:#fff;padding:20px;border-radius:0 0 28px 28px}
+a{color:#087f5b}
 .container{width:min(100% - 32px,1000px);margin:auto}
-.header-top{display:flex;justify-content:space-between;align-items:center}
-.logo{font-size:24px;font-weight:800}.logo span{color:#d7ffe9}
-.header-actions{display:flex;gap:8px}
-.header-btn{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;padding:9px 12px;border-radius:10px;cursor:pointer;font-size:12px}
-.hero{padding:35px 0 10px}.hero h1{font-size:32px;line-height:1.1;margin-bottom:10px}.hero p{font-size:14px;opacity:.9}
-.search-box{margin-top:22px;background:#fff;border-radius:15px;display:flex;padding:5px;box-shadow:0 8px 25px rgba(0,0,0,.12)}
+header{background:linear-gradient(135deg,#075b43,#08a66d);color:#fff;padding:16px 0 0;position:sticky;top:0;z-index:50}
+.logo{font-size:24px;font-weight:800;margin-bottom:10px}.logo span{color:#d7ffe9}
+nav{display:flex;gap:4px;overflow-x:auto}
+.tab{color:#e6fff3;text-decoration:none;padding:10px 14px;font-size:13px;font-weight:bold;white-space:nowrap;border-radius:10px 10px 0 0}
+.tab.on{background:#f4f7f6;color:#075b43}
+.hero{background:linear-gradient(135deg,#075b43,#08a66d);color:#fff;padding:28px 0 26px;border-radius:0 0 28px 28px}
+.hero h1{font-size:32px;line-height:1.1;margin-bottom:10px}.hero p{font-size:14px;opacity:.9}
+.search-box{margin-top:20px;background:#fff;border-radius:15px;display:flex;padding:5px;box-shadow:0 8px 25px rgba(0,0,0,.12)}
 .search-box input{flex:1;border:0;outline:0;padding:15px;min-width:0}
 .search-btn{border:0;background:#087f5b;color:#fff;padding:0 18px;border-radius:11px;cursor:pointer}
-main{padding:25px 0}
+#qnote{display:none;margin-top:12px;background:#fff7e7;color:#17201d;border-radius:12px;padding:12px;font-size:12px;line-height:1.5}
+main{padding:24px 0}
+h2.pt{font-size:22px;margin-bottom:6px}.sub{color:#718079;font-size:13px;line-height:1.5;margin-bottom:16px}
 .actions{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.action{background:#fff;padding:18px;border:1px solid #e2eae6;border-radius:17px;cursor:pointer;transition:.2s}
+.action{background:#fff;padding:18px;border:1px solid #e2eae6;border-radius:17px;text-decoration:none;color:inherit;display:block}
 .action:hover{transform:translateY(-2px)}
 .action-icon{width:44px;height:44px;background:#e8f8f1;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;margin-bottom:11px}
 .action strong{display:block;font-size:14px;margin-bottom:5px}.action small{color:#738079;font-size:11px}
-.notice{background:#fff7e7;border:1px solid #ffe1aa;border-radius:16px;padding:16px;margin:22px 0;font-size:12px;line-height:1.6}
+.notice{background:#fff7e7;border:1px solid #ffe1aa;border-radius:16px;padding:16px;margin:20px 0;font-size:12px;line-height:1.6}
 .notice strong{color:#975a00}
-.section-title{display:flex;justify-content:space-between;align-items:center;margin:25px 0 14px}.section-title h2{font-size:19px}
-.categories{display:flex;gap:8px;overflow-x:auto;padding-bottom:5px}
-.category{white-space:nowrap;border:1px solid #dbe5e0;background:#fff;padding:9px 14px;border-radius:30px;cursor:pointer;font-size:12px}
-.category.active{background:#087f5b;color:#fff;border-color:#087f5b}
-.product-list{display:grid;grid-template-columns:1fr;gap:12px}
-.product{background:#fff;border:1px solid #e1e9e5;border-radius:16px;padding:16px;display:flex;gap:13px;align-items:center;cursor:pointer}
-.product-icon{width:52px;height:52px;flex-shrink:0;border-radius:13px;background:#eff5f2;display:flex;justify-content:center;align-items:center;font-size:23px}
-.product-info{flex:1}.product-info h3{font-size:14px;margin-bottom:5px}.product-info p{font-size:11px;color:#748079}
-.badge{display:inline-block;margin-top:7px;padding:5px 8px;border-radius:20px;font-size:9px;font-weight:bold}
-.red{color:#b32121;background:#ffe7e7}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin:24px 0 12px}.section-title h2{font-size:19px}
+.list{display:grid;grid-template-columns:1fr;gap:12px}
+.alert{background:#fff;border:1px solid #e1e9e5;border-radius:16px;padding:16px;text-decoration:none;color:inherit;display:block}
+.alert:hover{border-color:#08a66d}
+.alert .d{font-size:11px;color:#748079;margin-bottom:6px}.alert h3{font-size:13px;line-height:1.45;margin-bottom:8px}
+.badge{display:inline-block;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:bold}
+.b-cf{color:#b32121;background:#ffe7e7}.b-ban{color:#fff;background:#8a1c1c}.b-rc{color:#9a6100;background:#fff0d8}.b-su{color:#7a5a00;background:#fff6c9}.b-sa{color:#08734f;background:#e4f8ef}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
+.chip{white-space:nowrap;border:1px solid #dbe5e0;background:#fff;padding:9px 14px;border-radius:30px;cursor:pointer;font-size:12px}
+.chip.on{background:#087f5b;color:#fff;border-color:#087f5b}
+.status{font-size:12px;margin:10px 0;color:#52615a;line-height:1.5}.status.warn{background:#fff7e7;border:1px solid #ffe1aa;border-radius:12px;padding:12px;color:#17201d}
+.card{background:#fff;border:1px solid #e1e9e5;border-radius:18px;padding:22px}
+.form-group{margin-top:14px}.form-group label{display:block;font-size:12px;font-weight:bold;margin-bottom:6px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px;border:1px solid #d9e3de;border-radius:10px;outline:none;background:#fff}
+.form-group textarea{min-height:100px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr;gap:0 12px}
+.primary-btn{width:100%;border:0;background:#087f5b;color:#fff;padding:14px;border-radius:11px;margin-top:18px;cursor:pointer;font-weight:bold}
+.primary-btn:disabled{opacity:.6}
+.secondary-btn{border:1px solid #d8e3de;background:#fff;color:#087f5b;padding:12px 16px;border-radius:11px;cursor:pointer;font-weight:bold;margin-top:12px}
+.hint{font-size:11px;color:#77827d;margin-top:5px;line-height:1.5}
+.hp{position:absolute;left:-9999px}
+#done{display:none;text-align:center}#done .ic{font-size:48px}
+details{background:#fff;border:1px solid #e1e9e5;border-radius:14px;padding:14px 16px;margin-bottom:10px}
+summary{cursor:pointer;font-weight:bold;font-size:14px}
+details p,details li{font-size:13px;line-height:1.65;color:#3d4a44;margin-top:10px}details ul{padding-left:20px}
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:100;padding:18px;overflow-y:auto}
 .modal-content{background:#fff;width:min(100%,520px);margin:35px auto;border-radius:22px;padding:25px;position:relative}
 .close{position:absolute;right:20px;top:15px;font-size:27px;color:#68736f;cursor:pointer}
-.modal h2{font-size:22px;margin-bottom:7px}
-.modal-subtitle{color:#718079;font-size:12px;line-height:1.5;margin-bottom:18px}
-.form-group{margin-top:14px}.form-group label{display:block;font-size:12px;font-weight:bold;margin-bottom:6px}
-.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px;border:1px solid #d9e3de;border-radius:10px;outline:none;background:#fff}
-.form-group textarea{min-height:90px;resize:vertical}
-.primary-btn{width:100%;border:0;background:#087f5b;color:#fff;padding:14px;border-radius:11px;margin-top:18px;cursor:pointer;font-weight:bold}
-.secondary-btn{width:100%;border:1px solid #d8e3de;background:#fff;color:#087f5b;padding:13px;border-radius:11px;margin-top:10px;cursor:pointer;font-weight:bold}
-.switch{text-align:center;margin-top:16px;font-size:12px;color:#6c7872}.switch a{color:#087f5b;font-weight:bold;cursor:pointer}
-.password-note{font-size:10px;color:#777;margin-top:5px}
-.result{text-align:center;padding:12px 0}.result-icon{font-size:52px;margin-bottom:10px}
-.result-box{text-align:left;background:#f5f8f7;border-radius:14px;padding:15px;margin-top:15px;font-size:12px;line-height:1.7}
-.dashboard{display:none}
-.dashboard-header{background:#fff;border-radius:18px;padding:20px;margin-bottom:15px}
-.dashboard-header h2{font-size:21px}.dashboard-header p{color:#748079;font-size:12px;margin-top:5px}
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:15px 0}
-.stat{background:#fff;padding:17px;border-radius:15px;border:1px solid #e2eae6}
-.stat-number{font-size:24px;font-weight:bold;color:#087f5b}.stat-label{color:#77827d;font-size:10px;margin-top:5px}
-.report-card{background:#fff;border:1px solid #e1e9e5;border-radius:15px;padding:16px;margin-bottom:10px}
-.report-card h3{font-size:14px;margin-bottom:6px}.report-card p{font-size:11px;color:#69756f;line-height:1.6}
-.status{display:inline-block;margin-top:8px;padding:5px 9px;border-radius:20px;font-size:9px;font-weight:bold;background:#fff0d8;color:#946000}
-.upload-box{border:2px dashed #cbdad4;padding:20px;text-align:center;border-radius:12px;margin-top:7px;color:#77827d;font-size:11px}
-footer{text-align:center;padding:35px 20px;color:#78847f;font-size:10px}
-.social{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:6px}
-.social-btn{width:100%;max-width:320px;border:1px solid #d8e3de;background:#fff;color:#17201d;padding:12px;border-radius:11px;cursor:pointer;font-weight:bold;font-size:14px}
-.divider{text-align:center;font-size:11px;color:#8a958f;margin:14px 0 0}
-.alert-item{display:flex;gap:13px;align-items:center;padding:12px 0;border-bottom:1px solid #eef2f0}
-.alert-item h3{font-size:14px;margin-bottom:4px}.alert-item p{font-size:11px;color:#748079}
-.alert-tips{background:#fff7e7;border:1px solid #ffe1aa;border-radius:14px;padding:14px;margin-top:15px;font-size:12px;line-height:1.7}
-.header-top{flex-wrap:wrap;gap:10px}
-.userbar{display:none;align-items:center;gap:8px;flex-wrap:wrap}
-.user-chip{display:flex;align-items:center;gap:8px;cursor:pointer;max-width:150px}
-.user-chip .n{font-size:12px;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.avatar{width:34px;height:34px;border-radius:50%;background:#d7ffe9;color:#075b43;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;overflow:hidden;flex-shrink:0}
-.avatar img{width:100%;height:100%;object-fit:cover}
-@media(min-width:700px){.actions{grid-template-columns:repeat(4,1fr)}.product-list{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(4,1fr)}}
+.modal h2{font-size:21px;margin-bottom:6px}
+.alert-item{padding:12px 0;border-bottom:1px solid #eef2f0}.alert-item h3{font-size:13px;line-height:1.45;margin:4px 0 8px}
+.tips{background:#fff7e7;border:1px solid #ffe1aa;border-radius:14px;padding:14px;margin-top:15px;font-size:12px;line-height:1.7}
+footer{text-align:center;padding:30px 20px;color:#78847f;font-size:11px;line-height:1.7}
+@media(min-width:700px){.actions{grid-template-columns:repeat(4,1fr)}.list{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 <header><div class="container">
-<div class="header-top">
-<div class="logo">Naija<span>Verify</span></div>
-<div class="header-actions" id="guestActions">
-<button class="header-btn" onclick="openLogin()">Login</button>
-<button class="header-btn" onclick="openRegister()">Register</button>
-</div>
-<div class="userbar" id="userBar"><button class="header-btn" onclick="showHome()">🏠 Home</button><div class="user-chip" onclick="goDashboard()" title="My dashboard"><div class="avatar" id="userAvatar"></div><span class="n" id="userName"></span></div><button class="header-btn" onclick="logout()">Logout</button></div>
-</div>
-<div class="hero"><h1>Check before you buy.</h1>
-<p>Search products and check official counterfeit and safety alerts in Nigeria.</p></div>
+<div class="logo">Checkn<span>Verify</span></div>
+<nav>
+<a class="tab" data-p="home" href="#home">🏠 Home</a>
+<a class="tab" data-p="banned" href="#banned">🚫 Banned Products</a>
+<a class="tab" data-p="report" href="#report">⚠️ Report a Product</a>
+<a class="tab" data-p="faq" href="#faq">❓ FAQ</a>
+</nav>
+</div></header>
+
+<!-- HOME -->
+<section class="page" id="p-home">
+<div class="hero"><div class="container">
+<h1>Check before you buy.</h1>
+<p>Search NAFDAC recalls, bans and counterfeit alerts, and report suspicious products.</p>
 <div class="search-box">
-<input id="searchInput" type="text" placeholder="Search product e.g. Peak Milk..." oninput="searchProducts()" onkeydown="if(event.key==='Enter')searchProducts(true)">
-<button class="search-btn" onclick="searchProducts(true)">🔍</button>
-</div></div></header>
-
+<input id="q" type="text" placeholder="Search product e.g. Peak Milk..." onkeydown="if(event.key==='Enter')homeSearch()">
+<button class="search-btn" onclick="homeSearch()">🔍</button>
+</div>
+<div id="qnote"></div>
+</div></div>
 <main class="container">
-<section id="publicPage">
 <div class="actions">
-<div class="action" onclick="openScan()"><div class="action-icon">📷</div><strong>Scan Product</strong><small>Scan barcode or QR code</small></div>
-<div class="action" onclick="focusSearch()"><div class="action-icon">🔎</div><strong>Search Alerts</strong><small>Find safety alerts</small></div>
-<div class="action" onclick="requireLogin()"><div class="action-icon">⚠️</div><strong>Report Product</strong><small>Login required</small></div>
-<div class="action" onclick="showHowItWorks()"><div class="action-icon">ℹ️</div><strong>How It Works</strong><small>Learn about verification</small></div>
+<a class="action" href="#banned"><div class="action-icon">🚫</div><strong>Banned Products</strong><small>Latest NAFDAC alerts</small></a>
+<a class="action" href="#report"><div class="action-icon">⚠️</div><strong>Report a Product</strong><small>No account needed</small></a>
+<a class="action" href="#faq"><div class="action-icon">❓</div><strong>Spot Fakes</strong><small>FAQ and tips</small></a>
+<a class="action" href="https://greenbook.nafdac.gov.ng" target="_blank" rel="noopener"><div class="action-icon">✅</div><strong>Check NAFDAC No.</strong><small>Official Greenbook</small></a>
 </div>
-<div class="notice"><strong>⚠️ Important Safety Notice</strong><br>
-A product not appearing in this database does <strong>not</strong> automatically mean that it is genuine. Always verify information against official regulatory sources.</div>
-<div class="section-title"><h2>Categories</h2></div>
-<div class="categories">
-<button class="category active" onclick="filterCategory('All',this)">All</button>
-<button class="category" onclick="filterCategory('Food',this)">Food</button>
-<button class="category" onclick="filterCategory('Medicine',this)">Medicine</button>
-<button class="category" onclick="filterCategory('Beverage',this)">Beverages</button>
-<button class="category" onclick="filterCategory('Cosmetics',this)">Cosmetics</button>
-<button class="category" onclick="filterCategory('Other',this)">Other</button>
-</div>
-<div class="section-title"><h2>Product Alerts</h2></div>
-<div id="productList" class="product-list"></div>
-</section>
-
-<section id="reporterDashboard" class="dashboard">
-<div class="dashboard-header">
-<h2>Reporter Dashboard</h2><p id="reporterWelcome">Welcome.</p>
-<button class="secondary-btn" onclick="openReport()">+ Report Counterfeit Product</button>
-<button class="secondary-btn" onclick="logout()">Logout</button>
-</div>
-<div class="stats">
-<div class="stat"><div class="stat-number" id="myReportCount">0</div><div class="stat-label">My Reports</div></div>
-<div class="stat"><div class="stat-number" id="myReview">0</div><div class="stat-label">Under Review</div></div>
-<div class="stat"><div class="stat-number" id="myConfirmed">0</div><div class="stat-label">Confirmed</div></div>
-<div class="stat"><div class="stat-number" id="myClosed">0</div><div class="stat-label">Closed</div></div>
-</div>
-<div class="section-title"><h2>My Reports</h2></div>
-<div id="myReports"></div>
-</section>
-
-<section id="adminDashboard" class="dashboard">
-<div class="dashboard-header">
-<h2>Admin / Regulatory Dashboard</h2><p>Review submitted counterfeit-product reports.</p>
-<button class="secondary-btn" onclick="logout()">Logout</button>
-</div>
-<div class="stats">
-<div class="stat"><div class="stat-number" id="allReportCount">0</div><div class="stat-label">Total Reports</div></div>
-<div class="stat"><div class="stat-number" id="allReview">0</div><div class="stat-label">Under Review</div></div>
-<div class="stat"><div class="stat-number" id="allConfirmed">0</div><div class="stat-label">Confirmed</div></div>
-<div class="stat"><div class="stat-number" id="allClosed">0</div><div class="stat-label">Closed</div></div>
-</div>
-<div class="section-title"><h2>Submitted Reports</h2></div>
-<div id="adminReports"></div>
-</section>
+<div class="notice"><strong>⚠️ Important Safety Notice</strong><br>A product not appearing in the alerts does <strong>not</strong> mean it is genuine. Always check the NAFDAC registration number on the official Greenbook.</div>
+<div class="section-title"><h2>Latest NAFDAC alerts</h2><a href="#banned" style="font-size:13px">See all →</a></div>
+<div id="latest" class="list"></div>
 </main>
+</section>
 
-<footer><p>NaijaVerify © 2026</p><br>
-<p>A product not listed as an alert is not automatically certified as genuine.</p></footer>
+<!-- BANNED PRODUCTS -->
+<section class="page" id="p-banned" style="display:none">
+<main class="container">
+<h2 class="pt">Banned Products</h2>
+<p class="sub">Recalls, bans, blacklists and counterfeit alerts, loaded from NAFDAC's <a href="https://nafdac.gov.ng/category/recalls-and-alerts/" target="_blank" rel="noopener">Recalls and Safety Alerts</a> page. Tap a notice to read the official alert.</p>
+<div class="search-box" style="box-shadow:none;border:1px solid #dbe5e0"><input id="bq" placeholder="Filter by product or company..." oninput="shown=20;renderBanned()"></div>
+<div class="chips" id="chips" style="margin-top:12px"></div>
+<div class="status" id="status"></div>
+<div id="blist" class="list"></div>
+<div style="text-align:center"><button class="secondary-btn" id="more" onclick="shown+=20;renderBanned()">Show more</button> <button class="secondary-btn" onclick="refreshNaf()">↻ Refresh from NAFDAC</button></div>
+<p class="hint" style="text-align:center;margin-top:14px">Category labels are worked out automatically from each notice's title. The official classification is on NAFDAC's page.</p>
+</main>
+</section>
 
-<div class="modal" id="loginModal"><div class="modal-content">
-<span class="close" onclick="closeModal('loginModal')">&times;</span>
-<h2>Reporter Login</h2>
-<p class="modal-subtitle">Login to report suspected counterfeit products and track your submitted reports.</p><div class="social"><div class="g-slot"></div><button type="button" class="social-btn" onclick="signInApple()">🍎 Continue with Apple</button></div><div class="divider">or use email</div>
-<form onsubmit="login(event)">
-<div class="form-group"><label>Username or email</label><input id="loginIdentifier" required autocomplete="username" placeholder="Username or email"></div>
-<div class="form-group"><label>Password</label><input id="loginPassword" type="password" required placeholder="Password"></div>
-<button class="primary-btn">Login</button>
-</form>
-<div class="switch">Don't have an account? <a onclick="switchToRegister()">Create account</a></div>
-</div></div>
-
-<div class="modal" id="registerModal"><div class="modal-content">
-<span class="close" onclick="closeModal('registerModal')">&times;</span>
-<h2>Create Reporter Account</h2>
-<p class="modal-subtitle">Registration is required before submitting counterfeit-product reports.</p><div class="social"><div class="g-slot"></div><button type="button" class="social-btn" onclick="signInApple()">🍎 Continue with Apple</button></div><div class="divider">or use email</div>
-<form onsubmit="register(event)">
-<div class="form-group"><label>Full Name *</label><input id="regName" required placeholder="Full name"></div>
-<div class="form-group"><label>Username *</label><input id="regUsername" required pattern="[A-Za-z0-9_]{3,20}" autocomplete="username" placeholder="3-20 letters, numbers or _"></div>
-<div class="form-group"><label>Email Address *</label><input id="regEmail" type="email" required placeholder="name@example.com"></div>
-<div class="form-group"><label>Phone Number *</label><input id="regPhone" required placeholder="080XXXXXXXX"></div>
-<div class="form-group"><label>Password *</label><input id="regPassword" type="password" minlength="8" required placeholder="Minimum 8 characters"></div>
-<div class="form-group"><label><input id="regConsent" type="checkbox" required> I agree that my information may be used to process my counterfeit-product reports.</label></div>
-<button class="primary-btn">Create Account</button>
-</form>
-<div class="switch">Already registered? <a onclick="switchToLogin()">Login</a></div>
-</div></div>
-
-<div class="modal" id="reportModal"><div class="modal-content">
-<span class="close" onclick="closeModal('reportModal')">&times;</span>
-<h2>Report Counterfeit Product</h2>
-<p class="modal-subtitle">Your account information will be attached to this report.</p>
+<!-- REPORT -->
+<section class="page" id="p-report" style="display:none">
+<main class="container" style="max-width:640px">
+<h2 class="pt">Report a Suspicious Product</h2>
+<p class="sub">Anyone can report. No account needed. Reports are reviewed by the ChecknVerify team and are not published automatically.</p>
+<div class="notice" style="margin-top:0">ChecknVerify is not an official NAFDAC channel. For urgent safety concerns, also call NAFDAC's complaints line: <strong>0800-1-NAFDAC (0800-1-623322)</strong>.</div>
+<div class="card" id="formCard">
 <form onsubmit="submitReport(event)">
-<div class="form-group"><label>Product Name *</label><input id="reportProduct" required placeholder="e.g. Peak Milk"></div>
-<div class="form-group"><label>Category *</label><select id="reportCategory" required>
-<option value="">Select category</option><option>Food</option><option>Medicine</option><option>Beverage</option><option>Cosmetics</option><option>Other</option></select></div>
-<div class="form-group"><label>Batch / Lot Number</label><input id="reportBatch" placeholder="If available"></div>
-<div class="form-group"><label>Expiry Date</label><input id="reportExpiry" type="date"></div>
-<div class="form-group"><label>Where was it purchased? *</label><input id="reportLocation" required placeholder="Shop, market, pharmacy etc."></div>
-<div class="form-group"><label>Seller Information</label><input id="reportSeller" placeholder="Seller/shop name if known"></div>
-<div class="form-group"><label>Description *</label><textarea id="reportDetails" required placeholder="Explain why you believe the product is suspicious..."></textarea></div>
-<div class="form-group"><label>Product Evidence</label>
-<div class="upload-box">📷 Product photographs can be uploaded here in the production version.
-<input type="file" id="reportPhoto" accept="image/*" style="margin-top:12px"></div></div>
-<button class="primary-btn">Submit Report</button>
-</form>
-</div></div>
+<div class="form-group"><label>Product name *</label><input id="rProduct" required maxlength="150" placeholder="e.g. Peak Milk 400g"></div>
+<div class="row">
+<div class="form-group"><label>Category *</label><select id="rCategory" required><option value="">Select category</option><option>Food</option><option>Medicine</option><option>Beverage</option><option>Cosmetics</option><option>Other</option></select></div>
+<div class="form-group"><label>Batch / lot number</label><input id="rBatch" maxlength="80" placeholder="If available"></div>
+</div>
+<div class="row">
+<div class="form-group"><label>Expiry date</label><input id="rExpiry" type="date"></div>
+<div class="form-group"><label>NAFDAC number on pack</label><input id="rNaf" maxlength="40" placeholder="If any"></div>
+</div>
+<div class="form-group"><label>Where was it bought? *</label><input id="rLocation" required maxlength="200" placeholder="Shop, market, pharmacy, online seller, area/city"></div>
+<div class="form-group"><label>Seller name</label><input id="rSeller" maxlength="150" placeholder="If known"></div>
+<div class="form-group"><label>Why do you think it is fake or unsafe? *</label><textarea id="rDetails" required maxlength="2000" placeholder="Describe what looks wrong: packaging, taste, smell, side effects, price..."></textarea></div>
+<div class="form-group"><label>Photo (optional, max 5 MB)</label><input type="file" id="rPhoto" accept="image/jpeg,image/png,image/webp"><div class="hint">Front, back, and the batch/expiry area help most. Photos can contain location data, so share only what you are comfortable with.</div></div>
+<div class="form-group"><label>Contact (optional, only if you want us to follow up)</label>
+<input id="rName" maxlength="100" placeholder="Name" style="margin-bottom:8px"><div class="row"><input id="rPhone" maxlength="20" placeholder="Phone" style="margin-bottom:8px"><input id="rEmail" type="email" maxlength="120" placeholder="Email" style="margin-bottom:8px"></div></div>
+<input class="hp" id="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+<button class="primary-btn" id="sendBtn">Submit report</button>
+</form></div>
+<div class="card" id="done"><div class="ic">✅</div><h2 class="pt" style="margin-top:8px">Report received</h2><p class="sub">Your reference is</p><p style="font-size:22px;font-weight:bold;color:#087f5b" id="refOut"></p><p class="sub" style="margin-top:12px" id="doneNote">Thank you for helping keep others safe. Keep the product and packaging.</p><button class="secondary-btn" onclick="newReport()">Report another product</button></div>
+</main>
+</section>
 
-<div class="modal" id="verifyModal"><div class="modal-content">
-<span class="close" onclick="closeModal('verifyModal')">&times;</span>
-<h2>Verify your email</h2>
-<p class="modal-subtitle" id="verifySub"></p>
-<form onsubmit="verifyCode(event)">
-<div class="form-group"><label>Verification code</label><input id="verifyCode" required inputmode="numeric" maxlength="10" autocomplete="one-time-code" placeholder="Enter code" style="letter-spacing:6px;text-align:center;font-size:20px"></div>
-<button class="primary-btn">Verify email</button>
-</form>
-<div class="switch">Didn't get it? <a onclick="resendCode()">Resend code</a></div>
-</div></div>
+<!-- FAQ -->
+<section class="page" id="p-faq" style="display:none">
+<main class="container" style="max-width:760px">
+<h2 class="pt">FAQ: Spotting Counterfeits and Reporting</h2>
+<p class="sub">Practical checks before you buy or use a product.</p>
+<div class="section-title"><h2>How to spot a counterfeit</h2></div>
+<details open><summary>1. Look for a NAFDAC registration number</summary><p>Registered food, drug and cosmetic products sold in Nigeria should carry a NAFDAC number. If there is none, do not buy it. A number alone is not proof: counterfeiters can copy real numbers, so go to step 2.</p></details>
+<details><summary>2. Verify the number on the NAFDAC Greenbook</summary><p>Search the number or product name at <a href="https://greenbook.nafdac.gov.ng" target="_blank" rel="noopener">greenbook.nafdac.gov.ng</a>. Then check that the <strong>product name, manufacturer and strength</strong> shown there match the pack in your hand. A real number on the wrong product is a red flag. Very new registrations may take time to appear.</p></details>
+<details><summary>3. Inspect the packaging closely</summary><ul><li>Spelling mistakes, blurry logos or colours that look off</li><li>Uneven or broken seals, loose caps, glue marks</li><li>Batch number and expiry date missing, smudged, or looking stamped on afterwards</li><li>Labels that peel or differ from a pack you know is genuine</li></ul></details>
+<details><summary>4. Check the batch against official alerts</summary><p>NAFDAC alerts often name specific brands, batch numbers and manufacturers. Search the product on the <a href="#banned">Banned Products</a> page and read the full notice for what to look for.</p></details>
+<details><summary>5. Be careful where you buy</summary><p>Prefer licensed pharmacies and established shops. Be cautious with street hawkers, unlabelled repackaged goods, and social-media sellers, especially for medicines. Prices far below normal are a warning sign.</p></details>
+<details><summary>6. Compare with a genuine product</summary><p>If you can, compare weight, smell, colour, texture and taste with a pack you trust. If something is different, or you feel unwell after using it, stop and keep the pack.</p></details>
+<details><summary>Does "not listed" mean a product is genuine?</summary><p>No. Alerts only cover products that have been reported and published. A product that is not on the list can still be fake or unregistered, so always do the Greenbook check.</p></details>
+<div class="section-title"><h2>Reporting a suspicious product</h2></div>
+<details open><summary>What should I do if I think a product is fake?</summary><ul><li>Stop using it, and seek medical help first if you feel unwell.</li><li>Keep the product, packaging and receipt. Do not throw them away.</li><li>Take clear photos: front, back, batch/expiry area and the NAFDAC number.</li><li>Note where, when and from whom you bought it.</li><li>Report it on our <a href="#report">Report a Product</a> page, and also contact NAFDAC directly (below).</li></ul></details>
+<details><summary>How do I report to NAFDAC?</summary><p>NAFDAC's website lists a complaints line: <strong>0800-1-NAFDAC (0800-1-623322)</strong>, and an enquiries line: 0700-1-NAFDAC (0700-1-623322). You can also use the contact page at <a href="https://nafdac.gov.ng/about-nafdac/contact-nafdac/" target="_blank" rel="noopener">nafdac.gov.ng</a>.</p></details>
+<details><summary>Do I need an account to report here?</summary><p>No. Anyone can send a report. Contact details are optional and only used if the team needs to follow up.</p></details>
+<details><summary>What happens to my report?</summary><p>It is saved privately and reviewed by the ChecknVerify team. It is not published automatically, and a report alone does not make a product "counterfeit". Official confirmation comes from NAFDAC.</p></details>
+<details><summary>Is ChecknVerify part of NAFDAC?</summary><p>No. ChecknVerify is an independent tool. Alerts on the Banned Products page are loaded from NAFDAC's public Recalls and Safety Alerts page, and each one links to the official notice.</p></details>
+</main>
+</section>
+
+<footer>
+ChecknVerify © 2026 · Alert data from <a href="https://nafdac.gov.ng/category/recalls-and-alerts/" target="_blank" rel="noopener">NAFDAC</a><br>
+<a href="#home">Home</a> · <a href="#banned">Banned Products</a> · <a href="#report">Report a Product</a> · <a href="#faq">FAQ</a><br>
+A product not listed as an alert is not automatically certified as genuine.
+</footer>
 
 <div class="modal" id="alertModal"><div class="modal-content">
-<span class="close" onclick="closeModal('alertModal')">&times;</span>
-<h2 id="alertTitle">Product alert</h2>
-<p class="modal-subtitle" id="alertSub"></p>
+<span class="close" onclick="closeModal()">&times;</span>
+<h2 id="alertTitle"></h2><p class="sub" id="alertSub"></p>
 <div id="alertBody" style="max-height:45vh;overflow-y:auto"></div>
-<div class="alert-tips"><strong>Before you buy or use it:</strong><br>• Check the batch number, expiry date and NAFDAC registration number<br>• Compare packaging, spelling and print quality with a known genuine pack<br>• Buy only from licensed outlets and keep your receipt<br>• Stop using it and report it if you already bought it<br><em>Prototype: the official alert reference, affected batches, date and source will be shown here.</em></div>
-<button class="primary-btn" onclick="closeModal('alertModal')">Close</button>
+<div class="tips"><strong>Before you buy or use it:</strong><br>• Check the batch number, expiry date and NAFDAC number<br>• Verify the number on the <a href="https://greenbook.nafdac.gov.ng" target="_blank" rel="noopener">NAFDAC Greenbook</a><br>• Buy only from licensed outlets and keep your receipt<br>• Already bought it? Stop using it and <a href="#report" onclick="closeModal()">report it</a></div>
+<button class="primary-btn" onclick="closeModal()">Close</button>
 </div></div>
 
-<div class="modal" id="scanModal"><div class="modal-content">
-<span class="close" onclick="closeModal('scanModal')">&times;</span>
-<div class="result"><div class="result-icon">📷</div><h2>Scan Product</h2>
-<p class="modal-subtitle">The production version will use the phone camera to scan barcodes and QR codes.</p>
-<div class="result-box"><strong>Prototype</strong><br><br>Camera scanning will be connected to the product database and verification API.</div>
-<button class="primary-btn" onclick="closeModal('scanModal')">Continue</button></div>
-</div></div>
-
-<div class="modal" id="infoModal"><div class="modal-content">
-<span class="close" onclick="closeModal('infoModal')">&times;</span>
-<h2>How NaijaVerify Works</h2>
-<div class="result-box">
-<strong>1. Search</strong><br>Anyone can search the database without an account.<br><br>
-<strong>2. Scan</strong><br>Users can scan product barcodes or QR codes.<br><br>
-<strong>3. Register</strong><br>A person must create an account before submitting a counterfeit-product report.<br><br>
-<strong>4. Report</strong><br>The reporter provides product information and evidence.<br><br>
-<strong>5. Review</strong><br>Authorized reviewers examine the report.<br><br>
-<strong>6. Official Alert</strong><br>A user report does not automatically make a product "counterfeit". Official confirmation should come through the appropriate regulatory process.
-</div></div></div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* CONFIG: paste your Supabase project URL and anon (public) key. Leave blank for local demo mode. */
-const CFG={supabaseUrl:"",supabaseAnonKey:""};
+/* CONFIG. Supabase: paste project URL + anon key to store reports in your database (blank = saved on this device only).
+   nafdacProxy: optional URL of a server that returns NAFDAC alerts as JSON [{date,title,link}] if browsers are blocked from NAFDAC directly. */
+const CFG={supabaseUrl:"",supabaseAnonKey:"",nafdacProxy:""};
 const sb=(CFG.supabaseUrl&&CFG.supabaseAnonKey&&window.supabase)?window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey):null;
-
-/* PRODUCT DATABASE (offline fallback): p(name, category, type, icon) */
-const p=(name,category,type,icon)=>({name,category,type,icon});
-let products=[
-p("Cowbell Our Milk","Food","Counterfeit Alert","🥛"),
-p("Arla Dano Full Cream Milk Powder","Food","Counterfeit Alert","🥛"),
-p("Peak Milk","Food","Counterfeit Alert","🥛"),
-p("Big Bull Rice","Food","Counterfeit Alert","🍚"),
-p("Cap Rice","Food","Counterfeit Alert","🍚"),
-p("Stallion Rice","Food","Counterfeit Alert","🍚"),
-p("Royal Stallion Rice","Food","Counterfeit Alert","🍚"),
-p("Mama Pride Rice","Food","Counterfeit Alert","🍚"),
-p("BUA Rice","Food","Counterfeit Alert","🍚"),
-p("Whippy Real Mayonnaise","Food","Counterfeit Alert","🥫"),
-p("Sprite 50cl","Beverage","Counterfeit Alert","🥤"),
-p("Fanta","Beverage","Counterfeit Alert","🥤"),
-p("Coca-Cola","Beverage","Counterfeit Alert","🥤"),
-p("Schweppes","Beverage","Counterfeit Alert","🥤"),
-p("Lacasera","Beverage","Counterfeit Alert","🥤"),
-p("Hollandia Yoghurt","Food","Alert","🥛"),
-p("Super Commando Energy Drink","Beverage","Alert","🥤"),
-p("Amstel Malta","Beverage","Alert","🥤"),
-p("Cadbury Chocolate Drink","Food","Alert","🍫"),
-p("Ovaltine","Food","Alert","🥛"),
-p("Meronem 1g Injection","Medicine","Counterfeit Medicine","💉"),
-p("Ozempic","Medicine","Falsified Medicine Alert","💉"),
-p("Lantus SoloStar","Medicine","Falsified Medicine Alert","💉"),
-p("Daonil 5mg","Medicine","Counterfeit Medicine","💊"),
-p("Augmentin 625mg","Medicine","Counterfeit Medicine","💊"),
-p("Tandak Injection","Medicine","Counterfeit Medicine","💉"),
-p("Noristerat Injection","Medicine","Counterfeit Medicine","💉"),
-p("Aflotin 20/120","Medicine","Counterfeit Medicine","💊"),
-p("Cikatem","Medicine","Counterfeit Medicine","💊"),
-p("OHEAL Ampicillin/Cloxacillin","Medicine","Counterfeit Medicine","💊"),
-p("Giga-S Injection","Medicine","Counterfeit Medicine","💉"),
-p("ZACEF-TZ Injection","Medicine","Counterfeit Medicine","💉"),
-p("Herceptin","Medicine","Counterfeit Medicine","💉"),
-p("Accu-Chek Instant Test Strips","Medicine","Counterfeit Medical Product","🩺"),
-p("Oral-B Toothpaste","Cosmetics","Counterfeit Product","🪥"),
-p("Colgate Toothpaste","Cosmetics","Counterfeit Product","🪥"),
-p("Dove Beauty Cream Bar Soap","Cosmetics","Counterfeit Product","🧼"),
-p("Nivea Roll-On Deodorant","Cosmetics","Counterfeit Product","🧴"),
-p("Radox Care + Moisturise Liquid Hand Wash","Cosmetics","Counterfeit Product","🧴"),
-p("Brown Henna Hair Colour","Cosmetics","Counterfeit Product","🧴"),
-p("Benylin Paediatric Syrup","Medicine","Falsified Medicine Alert","💊"),
-p("Falsified paediatric cough syrups","Medicine","Safety Alert","💊"),
-p("Falsified COVID-19 Antigen Rapid Test Kits","Medicine","Falsified Product Alert","🧪")
-];
-let currentCategory="All";
-
-/* STATUS GROUPS (used by dashboard stats) */
-const OPEN=["Submitted","Under Review","Additional Information Required"];
-const CONFIRMED=["Verified Alert","Confirmed Counterfeit"];
-const CLOSED=["Closed"];
-
-/* STORAGE */
-const getUsers=()=>JSON.parse(localStorage.getItem("naijaUsers")||"[]");
-const saveUsers=u=>localStorage.setItem("naijaUsers",JSON.stringify(u));
-let cache=[];
-const getReports=()=>sb?cache:JSON.parse(localStorage.getItem("naijaReports")||"[]");
-async function refreshReports(){
-if(!sb)return;
-const {data,error}=await sb.from("reports").select("*, profiles:reporter_id(full_name,email,phone)").order("created_at",{ascending:false});
-if(error){alert("Could not load reports: "+error.message);return}
-cache=data.map(r=>({id:r.id,ref:r.ref,reporterId:r.reporter_id,reporterName:(r.profiles&&r.profiles.full_name)||"",reporterEmail:(r.profiles&&r.profiles.email)||"",reporterPhone:(r.profiles&&r.profiles.phone)||"",productName:r.product_name,category:r.category,batch:r.batch||"",expiry:r.expiry,location:r.purchase_location,seller:r.seller||"",details:r.description,status:r.status,photoPath:r.photo_path,createdAt:new Date(r.created_at).toLocaleString()}));
-}
-async function loadAlerts(){
-if(!sb)return;
-const {data,error}=await sb.from("alerts").select("product_name,category,alert_type,icon").eq("published",true).order("product_name");
-if(!error&&data&&data.length)products=data.map(a=>({name:a.product_name,category:a.category,type:a.alert_type,icon:a.icon||"⚠️"}));
-searchProducts();
-}
-async function loadSessionUser(){
-if(!sb)return null;
-const {data:{session}}=await sb.auth.getSession();
-if(!session)return null;
-const {data:prof}=await sb.from("profiles").select("full_name,username,email,phone,role").eq("id",session.user.id).single();
-const md=session.user.user_metadata||{};
-const u={id:session.user.id,avatar:md.avatar_url||md.picture||"",username:(prof&&prof.username)||"",name:(prof&&(prof.full_name||prof.username))||session.user.email,email:(prof&&prof.email)||session.user.email,phone:(prof&&prof.phone)||"",role:(prof&&prof.role)||"reporter"};
-sessionStorage.setItem("naijaCurrentUser",JSON.stringify(u));
-return u;
-}
-async function viewPhoto(path){
-const {data,error}=await sb.storage.from("report-photos").createSignedUrl(path,300);
-if(error){alert(error.message);return}
-window.open(data.signedUrl,"_blank");
-}
-const saveReports=r=>localStorage.setItem("naijaReports",JSON.stringify(r));
-const getCurrentUser=()=>JSON.parse(sessionStorage.getItem("naijaCurrentUser")||"null");
 const $=id=>document.getElementById(id);
+const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const NAF="https://nafdac.gov.ng";
 
-/* FIX 3: normalise Nigerian phone numbers (080..., 80..., +234 80..., 234 80...) */
-function normPhone(v){
-let d=String(v||"").replace(/\D/g,"");
-if(d.startsWith("234"))d=d.slice(3);
-if(d.length===10)d="0"+d;
-return d;
+/* Built-in snapshot (newest NAFDAC notices seen on 5 Oct 2026), used only if the live load fails and nothing is saved */
+const SNAP=[
+["2026-08-19","Public Alert No. 043/2026-NAFDAC Places Products Marketed by Mofus Nigeria Ltd on Watchlist Pending Regulatory Investigation","/public-alert-no-043-2026-nafdac-places-products-marketed-by-mofus-nigeria-ltd-on-watchlist-pending-regulatory-investigation/"],
+["2026-08-19","Public Alert No. 042/2026-Alert on the Seizure of Suspected Substandard and Falsified BPPL Artemether/Lumefantrine 80mg/480mg","/public-alert-no-042-2026-alert-on-the-seizure-of-suspected-substandard-and-falsified-bppl-artemether-lumefantrine-80mg-480mg/"],
+["2026-08-19","Public Alert No. 041/2026 - Alert on Suspected Counterfeit ORACIRE+ Toothpaste","/public-alert-no-041-2026-alert-on-suspected-counterfeit-oracire-toothpaste/"],
+["2026-08-18","Public Alert No: 039/2026 – Alert on the Risk of Drug Poisoning Associated with Concurrent Use of Gabapentinoids and Other Medicines","/public-alert-no-039-2026-alert-on-the-risk-of-drug-poisoning-associated-with-concurrent-use-of-gabapentinoids-and-other-medicines/"],
+["2026-08-13","Regulatory Clarification on Deleject Disposable Needle Public Alert","/regulatory-clarification-on-deleject-disposable-needle-public-alert/"],
+["2026-07-18","Public Alert No. 037/2026 - Alert on Suspected Counterfeit Pulmicort® (Budesonide) Inhalation Suspension","/public-alert-no-037-2026-alert-on-suspected-counterfeit-pulmicort-budesonide-inhalation-suspension/"],
+["2026-07-18","Public Alert No. 036/2026 - Alert on Suspected Counterfeit Products Mimicking Forxiga® (Dapagliflozin)","/public-alert-no-036-2026-alert-on-suspected-counterfeit-products-mimicking-forxiga-dapagliflozin/"],
+["2026-07-12","Public Alert No. 034/2026 - Niger Republic Imposes Import Ban on Bulmex Parboiled Rice from India due to Metallic Contamination","/public-alert-no-034-2026-niger-republic-imposes-import-ban-on-bulmex-parboiled-rice-from-india-due-to-metallic-contamination/"]
+].map(([date,title,p])=>({date,title,link:NAF+p}));
+
+const KINDS=["Counterfeit / Falsified","Banned / Blacklisted","Recall","Substandard / Unregistered","Safety Alert"];
+const KCLS={"Counterfeit / Falsified":"b-cf","Banned / Blacklisted":"b-ban","Recall":"b-rc","Substandard / Unregistered":"b-su","Safety Alert":"b-sa"};
+function kind(t){
+if(/\b(blacklist\w*|ban|banned|banning|prohibit\w*)\b/i.test(t))return KINDS[1];
+if(/counterfeit|falsified|\bfake\b/i.test(t))return KINDS[0];
+if(/recall|withdraw|mop[- ]?up/i.test(t))return KINDS[2];
+if(/substandard|unregistered|unwholesome|adulterated|unauthori[sz]ed/i.test(t))return KINDS[3];
+return KINDS[4];
+}
+const fmt=d=>new Date(d+"T00:00:00").toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+const decode=h=>{const t=document.createElement("textarea");t.innerHTML=h;return t.value};
+const itemHtml=x=>{const k=kind(x.title);return `<a class="alert" href="${esc(x.link)}" target="_blank" rel="noopener"><div class="d">${fmt(x.date)}</div><h3>${esc(x.title)}</h3><span class="badge ${KCLS[k]}">${k}</span></a>`};
+
+/* ---------- live NAFDAC feed ---------- */
+const getJson=async u=>{const r=await fetch(u,{signal:AbortSignal.timeout(15000)});if(!r.ok)throw new Error(r.status);return r.json()};
+async function fetchLive(){
+if(CFG.nafdacProxy)return getJson(CFG.nafdacProxy);
+const c=await getJson(NAF+"/wp-json/wp/v2/categories?slug=recalls-and-alerts&_fields=id");
+if(!c[0])throw new Error("category");
+let out=[];
+for(let pg=1;pg<=6;pg++){
+let a;try{a=await getJson(`${NAF}/wp-json/wp/v2/posts?categories=${c[0].id}&per_page=100&page=${pg}&_fields=date,link,title`)}catch(e){if(pg===1)throw e;break}
+out=out.concat(a.map(x=>({date:x.date.slice(0,10),title:decode(x.title.rendered),link:x.link})));
+if(a.length<100)break;
+}
+return out;
+}
+let items=[],src="snapshot",loading=null,shown=20,filt="All";
+function setStatus(t,warn){const s=$("status");s.className="status"+(warn?" warn":"");s.innerHTML=t}
+function loadNaf(){
+if(loading)return loading;
+let c=null;try{c=JSON.parse(localStorage.getItem("cnvNaf")||"null")}catch(e){}
+items=c?c.items:SNAP;src=c?"saved":"snapshot";renderAll();
+setStatus("Checking NAFDAC for the latest alerts…");
+loading=fetchLive().then(a=>{
+if(!a.length)throw new Error("empty");
+items=a;src="live";
+try{localStorage.setItem("cnvNaf",JSON.stringify({t:Date.now(),items:a}))}catch(e){}
+setStatus("✅ Live from NAFDAC · "+a.length+" notices · updated "+new Date().toLocaleTimeString());
+}).catch(()=>{
+setStatus("⚠️ Could not reach NAFDAC from this browser, so this is a "+(src==="saved"?"previously saved copy":"short built-in snapshot")+" and may be out of date. <a href=\""+NAF+"/category/recalls-and-alerts/\" target=\"_blank\" rel=\"noopener\">Open the official list</a>.",true);
+}).then(renderAll);
+return loading;
+}
+function refreshNaf(){loading=null;loadNaf()}
+
+/* ---------- rendering ---------- */
+function renderAll(){
+$("latest").innerHTML=items.slice(0,6).map(itemHtml).join("");
+renderBanned();
+}
+function renderBanned(){
+$("chips").innerHTML=["All",...KINDS].map(k=>`<button class="chip ${k===filt?"on":""}" onclick="filt='${k}';shown=20;renderBanned()">${k}</button>`).join("");
+const w=$("bq").value.toLowerCase().split(/\s+/).filter(Boolean);
+const list=items.filter(x=>(filt==="All"||kind(x.title)===filt)&&w.every(s=>x.title.toLowerCase().includes(s)));
+$("blist").innerHTML=list.slice(0,shown).map(itemHtml).join("")||'<div class="card">No matching notices.</div>';
+$("more").style.display=list.length>shown?"inline-block":"none";
 }
 
-/* PRODUCT SEARCH */
-function displayProducts(list){
-const c=$("productList");
-c.innerHTML="";
-if(!list.length){
-c.innerHTML=`<div style="background:white;padding:30px;border-radius:16px;text-align:center;color:#777;grid-column:1/-1">🔎<br><br>No matching alerts found.<br><small>This does not mean the product is genuine. Verify with official sources.</small></div>`;
+/* ---------- home search + popup ---------- */
+async function homeSearch(){
+const q=$("q").value.trim(),note=$("qnote");
+if(q.length<2)return;
+note.style.display="block";note.innerText="Searching NAFDAC alerts…";
+await loadNaf();
+const w=q.toLowerCase().split(/\s+/);
+const hits=items.filter(x=>w.every(s=>x.title.toLowerCase().includes(s)));
+if(!hits.length){
+note.innerHTML=`No NAFDAC alert found for “${esc(q)}”. <strong>That does not mean it is genuine.</strong> Check the registration number on the <a href="https://greenbook.nafdac.gov.ng" target="_blank" rel="noopener">NAFDAC Greenbook</a>.`;
 return;
 }
-list.forEach(product=>{
-const div=document.createElement("div");
-div.className="product";
-/* FIX 1: use the product itself, not its index in the filtered list */
-div.onclick=()=>showProduct(product);
-div.innerHTML=`<div class="product-icon">${product.icon}</div><div class="product-info"><h3>${escapeHtml(product.name)}</h3><p>${escapeHtml(product.category)}</p><span class="badge red">⚠ ${escapeHtml(product.type)}</span></div>`;
-c.appendChild(div);
-});
-}
-function searchProducts(explicit){
-const raw=$("searchInput").value.trim(),q=raw.toLowerCase();
-const list=products.filter(x=>x.name.toLowerCase().includes(q)&&(currentCategory==="All"||x.category===currentCategory));
-displayProducts(list);
-/* Popup only on an explicit search (Enter / search button), not on every keystroke */
-if(explicit===true&&q.length>=2&&list.length)openAlert(list,raw);
-}
-function openAlert(list,query){
-const isC=x=>/counterfeit|falsified/i.test(x.type);
-$("alertTitle").innerText=list.some(isC)?"⚠️ Counterfeit product alert":"⚠️ Product safety alert";
-$("alertSub").innerText=query?list.length+" alert"+(list.length>1?"s":"")+" found for “"+query+"”":"Alert details";
-$("alertBody").innerHTML=list.map(x=>`<div class="alert-item"><div class="product-icon">${x.icon}</div><div><h3>${escapeHtml(x.name)}</h3><p>${escapeHtml(x.category)}</p><span class="badge red">⚠ ${escapeHtml(x.type)}</span></div></div>`).join("");
+note.style.display="none";
+const cf=hits.some(x=>kind(x.title)===KINDS[0]);
+$("alertTitle").innerText=cf?"⚠️ Counterfeit product alert":"⚠️ Product safety alert";
+$("alertSub").innerText=hits.length+" NAFDAC notice"+(hits.length>1?"s":"")+" found for “"+q+"”";
+$("alertBody").innerHTML=hits.slice(0,8).map(x=>`<div class="alert-item"><div class="d" style="font-size:11px;color:#748079">${fmt(x.date)}</div><h3>${esc(x.title)}</h3><span class="badge ${KCLS[kind(x.title)]}">${kind(x.title)}</span> <a href="${esc(x.link)}" target="_blank" rel="noopener" style="font-size:12px;margin-left:6px">Read official notice →</a></div>`).join("")+(hits.length>8?`<p class="sub" style="margin-top:12px"><a href="#banned" onclick="$('bq').value='${esc(q).replace(/'/g,"")}';closeModal();renderBanned()">See all ${hits.length} on the Banned Products page →</a></p>`:"");
 $("alertModal").style.display="block";
 }
-function filterCategory(category,button){
-currentCategory=category;
-document.querySelectorAll(".category").forEach(x=>x.classList.remove("active"));
-button.classList.add("active");
-searchProducts();
-}
-function showProduct(product){
-openAlert([product]);
-}
+function closeModal(){$("alertModal").style.display="none"}
+window.onclick=e=>{if(e.target.id==="alertModal")closeModal()};
 
-/* SOCIAL SIGN-IN: Google and Apple through Supabase Auth. Demo mode when Supabase is not configured. */
-function socialLogin(provider,name,email,verified){
-email=(email||"").trim().toLowerCase();
-if(!email){alert("No email was returned by "+provider+". Please register with email instead.");return}
-const users=getUsers();
-let user=users.find(u=>u.email.toLowerCase()===email);
-if(user&&!verified){alert("That email already has an account. Sign in with your password.");return}
-if(!user){user={id:"USR-"+Date.now(),name:name||email.split("@")[0],email,phone:"",address:"",provider,role:"reporter",createdAt:new Date().toLocaleString()};users.push(user);saveUsers(users)}
-sessionStorage.setItem("naijaCurrentUser",JSON.stringify(user));
-closeModal("loginModal");closeModal("registerModal");showDashboard("reporter");
-}
-async function signInOAuth(provider){
-if(!sb){demoSocial(provider);return}
-const {error}=await sb.auth.signInWithOAuth({provider,options:{redirectTo:location.origin+location.pathname}});
-if(error)alert("Sign-in failed: "+error.message);
-}
-function initGoogle(){document.querySelectorAll(".g-slot").forEach(el=>el.innerHTML='<button type="button" class="social-btn" onclick="signInOAuth(\'google\')">Continue with Google</button>')}
-function signInApple(){signInOAuth("apple")}
-function demoSocial(provider){
-const email=prompt("DEMO MODE: no real "+provider+" sign-in is configured.\nEnter an email to create a demo account:");
-if(email)socialLogin(provider,"",email,false);
-}
-
-/* EMAIL VERIFICATION */
-let pendingVerify=null;
-const genCode=()=>String(Math.floor(100000+Math.random()*900000));
-function openVerify(email){
-pendingVerify={email};
-$("verifySub").innerText="We sent a verification code to "+email+". Enter it below to activate your account.";
-$("verifyCode").value="";
-closeModal("registerModal");closeModal("loginModal");
-$("verifyModal").style.display="block";
-}
-async function verifyCode(event){
-event.preventDefault();
-if(!pendingVerify)return;
-const code=$("verifyCode").value.trim(),email=pendingVerify.email;
+/* ---------- reporting (no login) ---------- */
+async function submitReport(e){
+e.preventDefault();
+if($("hp").value)return;
+if(Date.now()-(+localStorage.getItem("cnvLast")||0)<60000){alert("Please wait a minute before sending another report.");return}
+const btn=$("sendBtn");btn.disabled=true;btn.innerText="Sending…";
+const ref="RPT-"+crypto.randomUUID().replace(/-/g,"").slice(0,8).toUpperCase();
+const v=id=>$(id).value.trim()||null;
+let desc=$("rDetails").value.trim();
+if(v("rNaf"))desc+="\n\nNAFDAC number on pack: "+v("rNaf");
+const row={ref,product_name:v("rProduct"),category:$("rCategory").value,batch:v("rBatch"),expiry:$("rExpiry").value||null,purchase_location:v("rLocation"),seller:v("rSeller"),description:desc,contact_name:v("rName"),contact_phone:v("rPhone"),contact_email:v("rEmail"),photo_path:null};
+let note="Thank you for helping keep others safe. Keep the product and packaging.";
+try{
+const f=$("rPhoto").files[0];
+if(f&&(f.size>5*1024*1024||!/^image\/(jpeg|png|webp)$/.test(f.type))){alert("Photo must be a JPG, PNG or WebP image under 5 MB.");return}
 if(sb){
-const {error}=await sb.auth.verifyOtp({email,token:code,type:"signup"});
-if(error){alert("Verification failed: "+error.message);return}
-await sb.auth.signOut(); /* verifying signs the user in; require a normal login */
+if(f){const path="anon/"+crypto.randomUUID()+"-"+f.name.replace(/[^\w.\-]/g,"_");const up=await sb.storage.from("report-photos").upload(path,f);if(up.error)note="Your report was sent, but the photo could not be uploaded.";else row.photo_path=path}
+const {error}=await sb.from("reports").insert(row);
+if(error){alert("Could not send report: "+error.message);return}
 }else{
-const users=getUsers(),u=users.find(x=>x.email===email);
-if(!u||u.verifyCode!==code){alert("Invalid code.");return}
-u.verified=true;delete u.verifyCode;saveUsers(users);
+const all=JSON.parse(localStorage.getItem("cnvReports")||"[]");all.unshift({...row,createdAt:new Date().toISOString()});localStorage.setItem("cnvReports",JSON.stringify(all));
+note="Demo mode: this report was saved on this device only. Connect Supabase to send reports to your database.";
 }
-pendingVerify=null;closeModal("verifyModal");
-alert("✅ Email verified successfully.\n\nYou can now log in with your username and password.");
-openLogin();
+localStorage.setItem("cnvLast",Date.now());
+$("refOut").innerText=ref;$("doneNote").innerText=note;
+$("formCard").style.display="none";$("done").style.display="block";e.target.reset();
+}finally{btn.disabled=false;btn.innerText="Submit report"}
 }
-async function resendCode(){
-if(!pendingVerify)return;
-if(sb){const {error}=await sb.auth.resend({type:"signup",email:pendingVerify.email});alert(error?"Could not resend: "+error.message:"A new code has been sent.");return}
-const users=getUsers(),u=users.find(x=>x.email===pendingVerify.email);
-if(u){u.verifyCode=genCode();saveUsers(users);alert("DEMO MODE: your new code is "+u.verifyCode)}
-}
+function newReport(){$("done").style.display="none";$("formCard").style.display="block";window.scrollTo(0,0)}
 
-/* TOP BAR: home button, name and avatar while logged in */
-function renderUserBar(){
-const u=getCurrentUser();
-$("guestActions").style.display=u?"none":"flex";
-$("userBar").style.display=u?"flex":"none";
-if(!u)return;
-const name=u.name||u.username||u.email||"User";
-$("userName").innerText=name;
-const ini=name.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
-$("userAvatar").innerHTML=u.avatar?`<img src="${escapeHtml(u.avatar)}" alt="" referrerpolicy="no-referrer">`:escapeHtml(ini);
+/* ---------- page tabs ---------- */
+const PAGES=["home","banned","report","faq"];
+function route(){
+const h=(location.hash||"#home").slice(1),p=PAGES.includes(h)?h:"home";
+PAGES.forEach(x=>{$("p-"+x).style.display=x===p?"block":"none";document.querySelector(`.tab[data-p="${x}"]`).classList.toggle("on",x===p)});
+window.scrollTo(0,0);
 }
-function showHome(){
-$("publicPage").style.display="block";$("reporterDashboard").style.display="none";$("adminDashboard").style.display="none";
-window.scrollTo({top:0,behavior:"smooth"});
-}
-function goDashboard(){const u=getCurrentUser();if(u)showDashboard(u.role==="reporter"?"reporter":"admin")}
-
-/* LOGIN */
-function openLogin(){closeModal("registerModal");$("loginModal").style.display="block"}
-function switchToRegister(){closeModal("loginModal");openRegister()}
-function switchToLogin(){closeModal("registerModal");openLogin()}
-function login(event){
-event.preventDefault();
-const id=$("loginIdentifier").value.trim().toLowerCase();
-const password=$("loginPassword").value;
-if(sb){(async()=>{
-let email=id;
-if(!id.includes("@")){const {data,error}=await sb.rpc("email_for_username",{p_username:id});if(error||!data){alert("Login failed: username or password is incorrect.");return}email=data}
-const {error}=await sb.auth.signInWithPassword({email,password});
-if(error){
-if(error.code==="email_not_confirmed"||/not confirmed/i.test(error.message)){await sb.auth.resend({type:"signup",email});openVerify(email);alert("Please verify your email first. We sent you a new code.");return}
-alert("Login failed: username/email or password is incorrect.");return}
-const u=await loadSessionUser();closeModal("loginModal");showDashboard(u.role==="reporter"?"reporter":"admin");
-})();return}
-/* Demo admin (prototype only, remove before production): admin@naijaverify.local / Admin12345 */
-if(id==="admin@naijaverify.local"&&password==="Admin12345"){
-sessionStorage.setItem("naijaCurrentUser",JSON.stringify({name:"System Administrator",email:id,role:"admin"}));
-closeModal("loginModal");showDashboard("admin");return;
-}
-const user=getUsers().find(u=>(u.email.toLowerCase()===id||(u.username||"")===id||(normPhone(id)&&normPhone(u.phone)===normPhone(id)))&&u.password&&u.password===password);
-if(!user){alert("Login failed.\n\nPlease check your username/email and password.");return}
-if(user.verified===false){alert("Please verify your email first.");openVerify(user.email);return}
-sessionStorage.setItem("naijaCurrentUser",JSON.stringify(user));
-closeModal("loginModal");showDashboard("reporter");
-}
-
-/* REGISTRATION */
-function openRegister(){closeModal("loginModal");$("registerModal").style.display="block"}
-function register(event){
-event.preventDefault();
-const name=$("regName").value.trim();
-const username=$("regUsername").value.trim().toLowerCase();
-const email=$("regEmail").value.trim().toLowerCase();
-const phone=normPhone($("regPhone").value);
-const address="",nin="";
-const password=$("regPassword").value;
-if(phone.length!==11){alert("Please enter a valid Nigerian phone number, e.g. 080XXXXXXXX.");return}
-if(sb){(async()=>{
-const {data:free,error:e1}=await sb.rpc("username_available",{p_username:username});
-if(e1){alert("Could not check username: "+e1.message);return}
-if(!free){alert("That username is taken. Please choose another.");return}
-const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name,phone,username},emailRedirectTo:location.origin+location.pathname}});
-if(error){alert("Registration failed: "+error.message);return}
-if(data.session){await sb.auth.signOut();alert("Email confirmation is switched off in your Supabase project. Turn on Confirm email (Authentication > Providers > Email) and try again.");return}
-openVerify(email);
-})();return}
-const users=getUsers();
-if(users.some(u=>u.email===email)){alert("An account with this email already exists.");return}
-if(users.some(u=>(u.username||"")===username)){alert("That username is taken.");return}
-if(users.some(u=>normPhone(u.phone)===phone)){alert("An account with this phone number already exists.");return}
-const code=genCode();
-const user={
-id:"USR-"+Date.now(),name,email,phone,address,username,verified:false,verifyCode:code,
-/* Never store real NINs in localStorage; prototype only. */
-identityStatus:nin?"Provided - production verification required":"Not provided",
-password,role:"reporter",createdAt:new Date().toLocaleString()
-};
-users.push(user);saveUsers(users);
-alert("DEMO MODE: no email is sent. Your verification code is "+code);
-openVerify(email);
-}
-
-/* REPORTING */
-function requireLogin(){
-if(!getCurrentUser()){
-alert("Login required.\n\nPlease create a reporter account or login before submitting a report.");
-openLogin();return;
-}
-openReport();
-}
-function openReport(){
-if(!getCurrentUser()){requireLogin();return}
-$("reportModal").style.display="block";
-}
-async function submitReportDb(event,user){
-const form=event.target;
-let photo_path=null,note="";
-const f=$("reportPhoto").files[0];
-if(f){
-if(f.size>5*1024*1024){alert("Photo is larger than 5 MB. Please choose a smaller image.");return}
-const path=user.id+"/"+crypto.randomUUID()+"-"+f.name.replace(/[^\w.\-]/g,"_");
-const up=await sb.storage.from("report-photos").upload(path,f);
-if(up.error)note="\n\n(Photo upload failed, report sent without it.)";else photo_path=path;
-}
-const row={reporter_id:user.id,product_name:$("reportProduct").value.trim(),category:$("reportCategory").value,batch:$("reportBatch").value.trim()||null,expiry:$("reportExpiry").value||null,purchase_location:$("reportLocation").value.trim(),seller:$("reportSeller").value.trim()||null,description:$("reportDetails").value.trim(),photo_path};
-const {data,error}=await sb.from("reports").insert(row).select("ref").single();
-if(error){alert("Could not submit report: "+error.message);return}
-closeModal("reportModal");form.reset();
-alert("Report submitted successfully.\n\nReference: "+data.ref+note);
-await refreshReports();renderReporterDashboard();
-}
-function submitReport(event){
-event.preventDefault();
-const user=getCurrentUser();
-if(!user){alert("Please login first.");return}
-if(sb){submitReportDb(event,user);return}
-const report={
-id:"RPT-"+Date.now(),
-reporterId:user.id,reporterName:user.name,reporterEmail:user.email,reporterPhone:user.phone,reporterAddress:user.address,
-productName:$("reportProduct").value.trim(),
-category:$("reportCategory").value,
-batch:$("reportBatch").value.trim(),
-expiry:$("reportExpiry").value,
-location:$("reportLocation").value.trim(),
-seller:$("reportSeller").value.trim(),
-details:$("reportDetails").value.trim(),
-status:"Submitted",
-createdAt:new Date().toLocaleString()
-};
-const reports=getReports();
-reports.unshift(report);saveReports(reports);
-closeModal("reportModal");event.target.reset();
-alert("Report submitted successfully.\n\nReference: "+report.id);
-renderReporterDashboard();
-}
-
-/* DASHBOARDS */
-async function showDashboard(type){
-renderUserBar();
-await refreshReports();
-$("publicPage").style.display="none";
-$("reporterDashboard").style.display="none";
-$("adminDashboard").style.display="none";
-if(type==="admin"){$("adminDashboard").style.display="block";renderAdminDashboard()}
-else{$("reporterDashboard").style.display="block";renderReporterDashboard()}
-window.scrollTo({top:0,behavior:"smooth"});
-}
-
-/* FIX 2: live stats instead of hardcoded zeros */
-function setStats(ids,reports){
-const n=g=>reports.filter(r=>g.includes(r.status)).length;
-$(ids[0]).innerText=reports.length;
-$(ids[1]).innerText=n(OPEN);
-$(ids[2]).innerText=n(CONFIRMED);
-$(ids[3]).innerText=n(CLOSED);
-}
-function renderReporterDashboard(){
-const user=getCurrentUser();
-if(!user)return;
-$("reporterWelcome").innerText="Welcome, "+user.name+".";
-const reports=getReports().filter(r=>r.reporterId===user.id);
-setStats(["myReportCount","myReview","myConfirmed","myClosed"],reports);
-const c=$("myReports");
-if(!reports.length){c.innerHTML=`<div class="report-card"><p>You have not submitted any reports yet.</p></div>`;return}
-c.innerHTML=reports.map(r=>`<div class="report-card"><h3>${escapeHtml(r.productName)}</h3>
-<p><strong>Reference:</strong> ${escapeHtml(r.ref||r.id)}</p>
-<p><strong>Category:</strong> ${escapeHtml(r.category)}</p>
-<p><strong>Date:</strong> ${escapeHtml(r.createdAt)}</p>
-<p><strong>Location:</strong> ${escapeHtml(r.location)}</p>
-<span class="status">${escapeHtml(r.status)}</span></div>`).join("");
-}
-function renderAdminDashboard(){
-const reports=getReports();
-setStats(["allReportCount","allReview","allConfirmed","allClosed"],reports);
-const c=$("adminReports");
-if(!reports.length){c.innerHTML=`<div class="report-card"><p>No reports have been submitted.</p></div>`;return}
-const statuses=["Submitted","Under Review","Additional Information Required","Verified Alert","Confirmed Counterfeit","Closed"];
-c.innerHTML=reports.map(r=>`<div class="report-card"><h3>${escapeHtml(r.productName)}</h3>
-<p><strong>Reference:</strong> ${escapeHtml(r.ref||r.id)}</p>
-<p><strong>Reporter:</strong> ${escapeHtml(r.reporterName)}</p>
-<p><strong>Email:</strong> ${escapeHtml(r.reporterEmail)}</p>
-<p><strong>Phone:</strong> ${escapeHtml(r.reporterPhone||"Not supplied")}</p>
-<p><strong>Category:</strong> ${escapeHtml(r.category)}</p>
-<p><strong>Batch:</strong> ${escapeHtml(r.batch||"Not supplied")}</p>
-<p><strong>Purchase location:</strong> ${escapeHtml(r.location)}</p>
-<p><strong>Seller:</strong> ${escapeHtml(r.seller||"Not supplied")}</p>
-<p><strong>Description:</strong> ${escapeHtml(r.details)}</p>
-<p><strong>Submitted:</strong> ${escapeHtml(r.createdAt)}</p>
-${r.photoPath?`<p><a href="#" onclick="viewPhoto('${escapeHtml(r.photoPath)}');return false" style="color:#087f5b">View photo evidence</a></p>`:""}
-<select style="margin-top:12px;width:100%;padding:10px;border:1px solid #ddd;border-radius:9px" onchange="changeReportStatus('${escapeHtml(r.id)}',this.value)">
-${statuses.map(s=>`<option ${r.status===s?"selected":""}>${s}</option>`).join("")}
-</select></div>`).join("");
-}
-function changeReportStatus(id,status){
-if(sb){(async()=>{const {error}=await sb.from("reports").update({status}).eq("id",id);if(error){alert("Update failed: "+error.message);return}await refreshReports();renderAdminDashboard()})();return}
-const reports=getReports();
-const report=reports.find(r=>r.id===id);
-if(!report)return;
-report.status=status;saveReports(reports);renderAdminDashboard();
-}
-
-/* LOGOUT */
-function logout(){
-if(sb)sb.auth.signOut();
-sessionStorage.removeItem("naijaCurrentUser");
-renderUserBar();
-$("publicPage").style.display="block";
-$("reporterDashboard").style.display="none";
-$("adminDashboard").style.display="none";
-window.scrollTo({top:0,behavior:"smooth"});
-alert("You have been logged out.");
-}
-
-/* SCAN / INFO / MODALS */
-function openScan(){$("scanModal").style.display="block"}
-function showHowItWorks(){$("infoModal").style.display="block"}
-function focusSearch(){$("searchInput").focus();window.scrollTo({top:0,behavior:"smooth"})}
-function closeModal(id){$(id).style.display="none"}
-window.onclick=e=>{if(e.target.classList.contains("modal"))e.target.style.display="none"};
-
-function escapeHtml(v){
-return String(v||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
-}
-
-/* INIT */
-displayProducts(products);
-initGoogle();
-renderUserBar();
-(async()=>{
-await loadAlerts();
-if(sb){const u=await loadSessionUser();if(u)showDashboard(u.role==="reporter"?"reporter":"admin")}
-else{const e=getCurrentUser();if(e)showDashboard(e.role)}
-})();
+window.addEventListener("hashchange",route);
+route();loadNaf();
 </script>
 </body>
 </html>
