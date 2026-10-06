@@ -116,6 +116,14 @@ footer{text-align:center;padding:30px 20px 90px;color:var(--mut);font-size:11px;
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:12px 0}
 .fields small{display:block;color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
 .fields b{font-size:13px;word-break:break-word}
+.post{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px 18px;margin-bottom:12px}
+.post summary{list-style:none}.post summary::-webkit-details-marker{display:none}
+.post .meta{font-size:11px;color:var(--mut);margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.post h3{font-size:16px;line-height:1.4;margin-bottom:6px}.post .lead{font-size:13px;color:#d3d7f5;line-height:1.6}
+.post .more{display:inline-block;margin-top:8px;font-size:12px;color:var(--a1);font-weight:bold}
+.post[open] .more{display:none}
+.post .body p,.post .body li{font-size:13px;line-height:1.7;color:#d3d7f5;margin-top:10px}.post .body ul{padding-left:20px}
+.post .src{font-size:12px;margin-top:14px}
 @media(min-width:700px){.actions{grid-template-columns:repeat(4,1fr)}.list{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -129,6 +137,7 @@ footer{text-align:center;padding:30px 20px 90px;color:var(--mut);font-size:11px;
 <a class="tab" data-p="home" href="#home">🏠 Home</a>
 <a class="tab" data-p="verify" href="#verify">🔎 Verify Product</a>
 <a class="tab" data-p="banned" href="#banned">🚫 Banned Products</a>
+<a class="tab" data-p="blog" href="#blog">📰 Blog</a>
 <a class="tab" data-p="report" href="#report">⚠️ Report a Product</a>
 <a class="tab" data-p="faq" href="#faq">❓ FAQ</a>
 </nav>
@@ -174,10 +183,38 @@ footer{text-align:center;padding:30px 20px 90px;color:var(--mut);font-size:11px;
 <p class="hint" style="text-align:center;margin-top:14px">Category labels are worked out automatically from each notice's title. The official classification is on NAFDAC's page.</p>
 </main></section>
 
+<section class="page" id="p-blog" style="display:none"><main class="container" style="max-width:760px">
+<h2 class="pt">Blog</h2>
+<p class="sub">Plain-English explainers based on NAFDAC public alerts. Each summary is written by ChecknVerify and links to the official notice, which has the full details.</p>
+
+<details class="post" open><summary><div class="meta"><span class="badge b-cf">Counterfeit alert</span><span>19 Aug 2026 · Public Alert 041/2026</span></div><h3>Fake toothpaste, one letter apart: ORACIRE+ vs ORACARE+</h3><p class="lead">NAFDAC warned about a suspected counterfeit toothpaste sold under a name almost identical to a registered brand.</p><span class="more">Read more ↓</span></summary>
+<div class="body"><p>NAFDAC says a toothpaste called <strong>ORACIRE+</strong> is circulating in Nigeria under the guise of the registered <strong>ORACARE+</strong>. The alert followed a formal complaint and a market intelligence report. NAFDAC states that the origin, composition, safety and quality of the suspected counterfeit have not been verified, so nobody can say what is in the tube.</p>
+<p>The alert is about the look-alike product only. It does not say the registered ORACARE+ is fake or unsafe.</p>
+<p><strong>What to take from it</strong></p><ul><li>Read brand names letter by letter. One changed vowel can be the whole difference.</li><li>Compare the pack with a tube you know is genuine, and check the NAFDAC number on the Verify Product tab.</li><li>If you find the look-alike, keep it and report it (see the FAQ for NAFDAC's reporting channels).</li></ul>
+<p class="src">Source: <a href="https://nafdac.gov.ng/public-alert-no-041-2026-alert-on-suspected-counterfeit-oracire-toothpaste/" target="_blank" rel="noopener">NAFDAC Public Alert No. 041/2026</a></p></div></details>
+
+<details class="post"><summary><div class="meta"><span class="badge b-cf">Falsified medicine</span><span>19 Aug 2026 · Public Alert 042/2026</span></div><h3>A registration number that doesn't exist: the Kano antimalarial seizure</h3><p class="lead">A seized malaria medicine carried a NAFDAC number that NAFDAC says is fake.</p><span class="more">Read more ↓</span></summary>
+<div class="body"><p>NAFDAC announced the seizure of suspected falsified <strong>Artemether/Lumefantrine 80mg/480mg</strong>, purportedly made by Bandaram Pharma Packleh Ltd (BPPL), India. The alert lists the registration number on the pack as <strong>02-3457 (fake)</strong> and classifies the product as a Falsified (F) medical product. Press reports say it was intercepted during routine surveillance at a wholesale centre in Kano.</p>
+<p>NAFDAC warns that falsified antimalarials can lead to treatment failure, a worsening illness and drug resistance.</p>
+<p><strong>What to take from it</strong></p><ul><li>A number printed on a box proves nothing by itself. Look it up, and make sure the product name, manufacturer and strength match the record.</li><li>Buy medicines only from licensed pharmacies.</li><li>Report suspected sales to the nearest NAFDAC office.</li></ul>
+<p class="src">Source: <a href="https://nafdac.gov.ng/public-alert-no-042-2026-alert-on-the-seizure-of-suspected-substandard-and-falsified-bppl-artemether-lumefantrine-80mg-480mg/" target="_blank" rel="noopener">NAFDAC Public Alert No. 042/2026</a></p></div></details>
+
+<details class="post"><summary><div class="meta"><span class="badge b-su">Substandard batch</span><span>2025 · Updated Public Alert 030A/2025</span></div><h3>Registered, but a bad batch: the ARTEMETRIN DS alert</h3><p class="lead">A registered antimalarial can still have a batch that fails quality tests.</p><span class="more">Read more ↓</span></summary>
+<div class="body"><p>NAFDAC's updated alert describes <strong>ARTEMETRIN DS</strong> (Artemether/Lumefantrine 80mg/480mg), a registered product labelled as made by A.C. Drugs Ltd in Enugu. NAFDAC reports that batch <strong>Q011G</strong> (manufactured 07/23, expiry 06/25) contained only 59.2% of the stated artemether and 71.2% of the stated lumefantrine, outside the expected range, and classed it as substandard.</p>
+<p>Too little active ingredient can cause treatment failure and contribute to drug resistance.</p>
+<p><strong>What to take from it</strong></p><ul><li>An Active registration shows the product is registered. It does not guarantee every batch.</li><li>Check the batch number and expiry date on your pack against any alert for that product.</li></ul>
+<p class="src">Source: <a href="https://nafdac.gov.ng/public-alert-no-030a-2025-sale-of-confirmed-substandard-artemetrin-ds-tablets/" target="_blank" rel="noopener">NAFDAC Updated Public Alert No. 030A/2025</a></p></div></details>
+
+<details class="post"><summary><div class="meta"><span class="badge b-sa">Guide</span><span>Evergreen</span></div><h3>How to read a NAFDAC alert in 60 seconds</h3><p class="lead">Six things to look for before you decide whether an alert affects you.</p><span class="more">Read more ↓</span></summary>
+<div class="body"><ul><li><strong>The exact product name.</strong> Look-alike names are common, and an alert may be about a copy rather than the real brand.</li><li><strong>The manufacturer and NAFDAC number on the alert.</strong> Compare both with your pack. Some alerts point out that the number shown on the fake does not exist.</li><li><strong>Batch numbers and dates.</strong> Many alerts cover specific batches only, not every pack of a brand.</li><li><strong>The classification.</strong> Counterfeit and falsified mean the product is not what it claims to be. Substandard means it fails quality standards. A recall means a manufacturer or regulator is pulling product back.</li><li><strong>What NAFDAC asks you to do.</strong> This is usually to stop using it, keep the pack, and report it.</li><li><strong>The date.</strong> Check whether the notice has been updated.</li></ul>
+<p>A brand appearing in an alert does not mean all of its products are unsafe, and a product missing from the alerts is not proven genuine. Use the Verify Product tab to check the NRN and status too.</p>
+<p class="src">Browse all notices: <a href="https://nafdac.gov.ng/category/recalls-and-alerts/" target="_blank" rel="noopener">NAFDAC Recalls and Safety Alerts</a></p></div></details>
+</main></section>
+
 <section class="page" id="p-report" style="display:none"><main class="container" style="max-width:640px">
 <h2 class="pt">Report a Suspicious Product</h2>
 <p class="sub">Anyone can report. No account needed. Reports are reviewed by the ChecknVerify team and are not published automatically.</p>
-<div class="notice" style="margin-top:0">ChecknVerify is not an official NAFDAC channel. For urgent safety concerns, also call NAFDAC's complaints line: <strong>0800-1-NAFDAC (0800-1-623322)</strong>.</div>
+<div class="notice" style="margin-top:0">ChecknVerify is not an official NAFDAC channel. For urgent safety concerns, also call NAFDAC's complaints line <strong>0800-1-NAFDAC (0800-1-623322)</strong> or email <strong>sf.alert@nafdac.gov.ng</strong>.</div>
 <div class="card" id="formCard"><form onsubmit="submitReport(event)">
 <div class="form-group"><label>Product name *</label><input id="rProduct" required maxlength="150" placeholder="e.g. Peak Milk 400g"></div>
 <div class="row"><div class="form-group"><label>Category *</label><select id="rCategory" required><option value="">Select category</option><option>Food</option><option>Medicine</option><option>Beverage</option><option>Cosmetics</option><option>Other</option></select></div>
@@ -208,7 +245,7 @@ footer{text-align:center;padding:30px 20px 90px;color:var(--mut);font-size:11px;
 <details><summary>Does "not listed" mean a product is genuine?</summary><p>No. Alerts only cover products that have been reported and published. A product that is not on the list can still be fake or unregistered, so always do the Greenbook check.</p></details>
 <div class="section-title"><h2>Reporting a suspicious product</h2></div>
 <details open><summary>What should I do if I think a product is fake?</summary><ul><li>Stop using it, and seek medical help first if you feel unwell.</li><li>Keep the product, packaging and receipt. Do not throw them away.</li><li>Take clear photos: front, back, batch/expiry area and the NAFDAC number.</li><li>Note where, when and from whom you bought it.</li><li>Report it on our <a href="#report">Report a Product</a> page, and also contact NAFDAC directly (below).</li></ul></details>
-<details><summary>How do I report to NAFDAC?</summary><p>NAFDAC's website lists a complaints line: <strong>0800-1-NAFDAC (0800-1-623322)</strong>, and an enquiries line: 0700-1-NAFDAC (0700-1-623322). The Greenbook also links NAFDAC's <a href="https://nafdac.medsafety.io/" target="_blank" rel="noopener">Report SF</a> (substandard and falsified products) form and an adverse drug reaction form. Contact page: <a href="https://nafdac.gov.ng/about-nafdac/contact-nafdac/" target="_blank" rel="noopener">nafdac.gov.ng</a>.</p></details>
+<details><summary>How do I report to NAFDAC?</summary><p>NAFDAC's website lists a complaints line: <strong>0800-1-NAFDAC (0800-1-623322)</strong>, and an enquiries line: 0700-1-NAFDAC (0700-1-623322). In its recent alerts NAFDAC also asks people to email <strong>sf.alert@nafdac.gov.ng</strong>, to use its <strong>Med Safety app</strong> (Android and iOS), or to visit the nearest NAFDAC office. The Greenbook also links NAFDAC's <a href="https://nafdac.medsafety.io/" target="_blank" rel="noopener">Report SF</a> (substandard and falsified products) form and an adverse drug reaction form. Contact page: <a href="https://nafdac.gov.ng/about-nafdac/contact-nafdac/" target="_blank" rel="noopener">nafdac.gov.ng</a>.</p></details>
 <details><summary>Do I need an account to report here?</summary><p>No. Anyone can send a report. Contact details are optional and only used if the team needs to follow up.</p></details>
 <details><summary>What happens to my report?</summary><p>It is saved privately and reviewed by the ChecknVerify team. It is not published automatically, and a report alone does not make a product "counterfeit". Official confirmation comes from NAFDAC.</p></details>
 <details><summary>Is ChecknVerify part of NAFDAC?</summary><p>No. ChecknVerify is an independent tool. Alerts and registration details come from NAFDAC's public pages, and each alert links to the official notice.</p></details>
@@ -216,7 +253,7 @@ footer{text-align:center;padding:30px 20px 90px;color:var(--mut);font-size:11px;
 
 <footer>
 ChecknVerify © 2026 · Data from <a href="https://nafdac.gov.ng/category/recalls-and-alerts/" target="_blank" rel="noopener">NAFDAC</a><br>
-<a href="#home">Home</a> · <a href="#verify">Verify Product</a> · <a href="#banned">Banned Products</a> · <a href="#report">Report a Product</a> · <a href="#faq">FAQ</a><br>
+<a href="#home">Home</a> · <a href="#verify">Verify Product</a> · <a href="#banned">Banned Products</a> · <a href="#blog">Blog</a> · <a href="#report">Report a Product</a> · <a href="#faq">FAQ</a><br>
 A product not listed as an alert is not automatically certified as genuine.
 </footer>
 
@@ -399,7 +436,7 @@ const hist=[],STOP=new Set("what which where when does have this that with from 
 const KB=[
 [/spot|identify|how (can|do) i tell|fake medicine|counterfeit/i,"To spot a fake: 1) find the NAFDAC number (NRN) and verify it, with status Active, on the Greenbook; 2) make sure product name, manufacturer and strength match the pack; 3) inspect printing, seals, batch and expiry; 4) compare with a genuine pack; 5) buy from licensed outlets. A listed number alone is not proof. See the FAQ tab."],
 [/nrn|nafdac (reg|number)|greenbook|verify|registration/i,"Search the NRN or product name on the NAFDAC Greenbook (greenbook.nafdac.gov.ng) and check the Status column: Active means the registration is currently valid. Also confirm name, manufacturer and strength match your pack."],
-[/report|complain|hotline|call|phone|where do i/i,"Keep the product, packaging and receipt, take photos, then use the Report a Product tab. Also contact NAFDAC: complaints 0800-1-NAFDAC (0800-1-623322), or the Report SF form at nafdac.medsafety.io. If you feel unwell, get medical care first."],
+[/report|complain|hotline|call|phone|where do i/i,"Keep the product, packaging and receipt, take photos, then use the Report a Product tab. Also contact NAFDAC: complaints 0800-1-NAFDAC (0800-1-623322), email sf.alert@nafdac.gov.ng, the Med Safety app, or the Report SF form at nafdac.medsafety.io. If you feel unwell, get medical care first."],
 [/not listed|not on the list|means genuine|safe if/i,"No. Alerts only cover products that were reported and published. A product that is not listed can still be fake or unregistered, so always check the NRN and status on the Greenbook."],
 [/active|expired|status/i,"On the Greenbook, Status shows whether a registration is currently valid. Active is current; anything else (e.g. Expired) means it is not currently active, so ask the seller and check with NAFDAC."]
 ];
@@ -452,7 +489,7 @@ $("formCard").style.display="none";$("done").style.display="block";e.target.rese
 function newReport(){$("done").style.display="none";$("formCard").style.display="block";window.scrollTo(0,0)}
 
 /* ---------- page tabs ---------- */
-const PAGES=["home","verify","banned","report","faq"];
+const PAGES=["home","verify","banned","blog","report","faq"];
 function route(){
 const [h,qs]=(location.hash||"#home").slice(1).split("?"),p=PAGES.includes(h)?h:"home";
 PAGES.forEach(x=>{$("p-"+x).style.display=x===p?"block":"none";document.querySelector(`.tab[data-p="${x}"]`).classList.toggle("on",x===p)});
