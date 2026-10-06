@@ -253,6 +253,70 @@ footer{text-align:center;padding:30px 20px 90px;color:var(--mut);font-size:12px;
 <details><summary>How do I report to NAFDAC?</summary><p>NAFDAC's website lists a complaints line: <strong>0800-1-NAFDAC (0800-1-623322)</strong>, and an enquiries line: 0700-1-NAFDAC (0700-1-623322). In its recent alerts NAFDAC also asks people to email <strong>sf.alert@nafdac.gov.ng</strong>, to use its <strong>Med Safety app</strong>.</p></details>
 </main></section>
 </body>
+// Initialize Supabase (Ensure the Supabase CDN script is in your <head>)
+const supabaseUrl = 'https://ginxwjvjhqfgxxymfacj.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdpbnh3anZqaHFmZ3h4eW1mYWNqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MDc2MDc3NSwiZXhwIjoyMTA2MzM2Nzc1fQ.cjeey7QoCJiwMOYQW6n3dO5hd7jlCQ-NqYmD7p6r43o';
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+// --- Updated Verify Search ---
+async function verifySearch(query) {
+  if (!query) return;
+  
+  $('vbar').style.display = 'block';$('vout').innerHTML = ''; 
+  
+  try {
+    // Route the request through your Supabase Edge Function
+    const { data, error } = await supabase.functions.invoke('fetch-nafdac', {
+      body: { query: query, type: 'greenbook' }
+    });
+
+    if (error) throw error;
+
+    // Handle empty results
+    if (!data || data.length === 0) {
+      $('vout').innerHTML = `
+        <div class="rcard" style="text-align:center; padding:40px 20px;">
+          <div class="big" style="font-size:50px; margin-bottom:15px;">🤷🏽‍♂️</div>
+          <h3>No results found</h3>
+          <p class="rmeta">We couldn't find "<b>${query}</b>" in the Greenbook register.</p>
+        </div>`;
+      return;
+    }
+
+    // Render results
+    let html = '';
+    data.forEach((item, index) => {
+      const statusText = item.status ? item.status.toLowerCase() : 'unknown';
+      let statusClass = 'st un'; 
+      if (statusText === 'active') statusClass = 'st on'; 
+      if (statusText === 'expired' || statusText === 'inactive') statusClass = 'st off'; 
+
+      html += `
+        <div class="rcard" style="--i:${index}">
+          <div class="rtop">
+            <h3>${item.productName || 'Unnamed Product'}</h3>
+            <span class="${statusClass}"><i></i> ${item.status || 'Unknown'}</span>
+          </div>
+          <div class="fields">
+            <div><small>NAFDAC NUMBER (NRN)</small><b>${item.nrn || 'N/A'}</b></div>
+            <div><small>MANUFACTURER</small><b>${item.manufacturer || 'N/A'}</b></div>
+          </div>
+        </div>
+      `;
+    });
+    $('vout').innerHTML = html;
+
+  } catch (error) {
+    console.error("Search failed:", error);
+    $('vout').innerHTML = `
+      <div class="rcard" style="border-color: #d10000; background: rgba(255,79,81,.05);">
+        <h3 style="color:#d10000; margin-bottom:5px;">⚠️ Search Error</h3>
+        <p class="rmeta">Unable to fetch data from the NAFDAC database.</p>
+      </div>`;
+  } finally {
+    $('vbar').style.display = 'none';
+  }
+}
 <script>
   const $ = id => document.getElementById(id);
 
