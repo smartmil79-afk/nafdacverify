@@ -109,6 +109,13 @@ footer{text-align:center;padding:30px 20px 90px;color:var(--mut);font-size:11px;
 .cin{display:flex;gap:8px;padding:10px;border-top:1px solid var(--bd)}.cin input{flex:1;background:rgba(255,255,255,.08);border:1px solid var(--bd);border-radius:12px;padding:10px;outline:none;min-width:0}
 .cin button{border:0;border-radius:12px;padding:0 14px;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2));font-weight:bold}
 .cnote{font-size:10px;color:var(--mut);text-align:center;padding:0 10px 8px}
+.list.one{grid-template-columns:1fr}
+.vmeta{margin:18px 0 6px;font-size:14px}
+.rcard{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;animation:rise .45s both;animation-delay:calc(var(--i)*70ms)}
+.rcard h3{font-size:15px;line-height:1.35}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:12px 0}
+.fields small{display:block;color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.fields b{font-size:13px;word-break:break-word}
 @media(min-width:700px){.actions{grid-template-columns:repeat(4,1fr)}.list{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -120,6 +127,7 @@ footer{text-align:center;padding:30px 20px 90px;color:var(--mut);font-size:11px;
 </div>
 <nav>
 <a class="tab" data-p="home" href="#home">🏠 Home</a>
+<a class="tab" data-p="verify" href="#verify">🔎 Verify Product</a>
 <a class="tab" data-p="banned" href="#banned">🚫 Banned Products</a>
 <a class="tab" data-p="report" href="#report">⚠️ Report a Product</a>
 <a class="tab" data-p="faq" href="#faq">❓ FAQ</a>
@@ -131,9 +139,7 @@ footer{text-align:center;padding:30px 20px 90px;color:var(--mut);font-size:11px;
 <h1>Check before <span class="grad">you buy.</span></h1>
 <p>Search NAFDAC recalls and counterfeit alerts, see a product's NRN and whether its registration is Active, and report suspicious products.</p>
 <div class="sbox" id="sbox"><input id="q" placeholder="Search a product or NRN, e.g. Peak Milk..." onkeydown="if(event.key==='Enter')homeSearch()"><button class="sbtn" id="sbtn" onclick="homeSearch()">🔍</button></div>
-<div class="sbar" id="sbar"><div class="t"><i></i></div><small id="sbarTxt"></small></div>
 <div class="sugg">Try: <button onclick="trySearch('Peak Milk')">Peak Milk</button><button onclick="trySearch('Augmentin')">Augmentin</button><button onclick="trySearch('Colgate')">Colgate</button></div>
-<div id="qnote"></div>
 </div>
 <main class="container">
 <div class="actions">
@@ -147,6 +153,15 @@ footer{text-align:center;padding:30px 20px 90px;color:var(--mut);font-size:11px;
 <div id="latest" class="list"></div>
 </main>
 </section>
+
+<section class="page" id="p-verify" style="display:none"><main class="container">
+<h2 class="pt">Verify a Product</h2>
+<p class="sub">Search by product name, NAFDAC registration number (NRN), active ingredient or manufacturer. Results come from NAFDAC's recalls and alerts and a copy of the NAFDAC Greenbook register.</p>
+<div class="sbox" id="vbox"><input id="vq" placeholder="e.g. milk, Augmentin, A8-102274" onkeydown="if(event.key==='Enter')verifySearch($('vq').value)"><button class="sbtn" id="vbtn" onclick="verifySearch($('vq').value)">🔍</button></div>
+<div class="sbar" id="vbar"><div class="t"><i></i></div><small>Scanning NAFDAC alerts and registrations…</small></div>
+<p class="hint">For the strongest match, enter the NRN exactly as printed on the pack.</p>
+<div id="vout"></div>
+</main></section>
 
 <section class="page" id="p-banned" style="display:none"><main class="container">
 <h2 class="pt">Banned Products</h2>
@@ -185,7 +200,7 @@ footer{text-align:center;padding:30px 20px 90px;color:var(--mut);font-size:11px;
 <p class="sub">Practical checks before you buy or use a product. You can also ask the assistant (🤖, bottom right).</p>
 <div class="section-title"><h2>How to spot a counterfeit</h2></div>
 <details open><summary>1. Look for a NAFDAC registration number (NRN)</summary><p>Registered products sold in Nigeria should carry a NAFDAC number. If there is none, do not buy it. A number alone is not proof: counterfeiters can copy real numbers, so go to step 2.</p></details>
-<details><summary>2. Verify the NRN and its status on the Greenbook</summary><p>Search the number or product name at <a href="https://greenbook.nafdac.gov.ng" target="_blank" rel="noopener">greenbook.nafdac.gov.ng</a>. Check that the <strong>product name, manufacturer and strength</strong> match your pack, and look at the <strong>Status</strong> column. If the status is anything other than Active (for example Expired), the registration is not currently active, so ask the seller and check with NAFDAC. The Greenbook covers medicines, vaccines, devices, herbals, veterinary products and disinfectants; for foods, drinks and cosmetics use <a href="https://registration.nafdac.gov.ng/" target="_blank" rel="noopener">NAFDAC's registration portal</a>.</p></details>
+<details><summary>2. Verify the NRN and its status on the Greenbook</summary><p>Search the number or product name at <a href="https://greenbook.nafdac.gov.ng" target="_blank" rel="noopener">greenbook.nafdac.gov.ng</a>. Check that the <strong>product name, manufacturer and strength</strong> match your pack, and look at the <strong>Status</strong> column. If the status is anything other than Active (for example Expired), the registration is not currently active, so ask the seller and check with NAFDAC. If you cannot find a product, it may not be in the copy of the register yet, so search the Greenbook directly or ask NAFDAC.</p></details>
 <details><summary>3. Inspect the packaging closely</summary><ul><li>Spelling mistakes, blurry logos or colours that look off</li><li>Uneven or broken seals, loose caps, glue marks</li><li>Batch number and expiry date missing, smudged, or stamped on afterwards</li><li>Labels that peel or differ from a pack you know is genuine</li></ul></details>
 <details><summary>4. Check the batch against official alerts</summary><p>NAFDAC alerts often name specific brands, batch numbers and manufacturers. Search the product on the <a href="#banned">Banned Products</a> page and read the full notice for what to look for.</p></details>
 <details><summary>5. Be careful where you buy</summary><p>Prefer licensed pharmacies and established shops. Be cautious with street hawkers, unlabelled repackaged goods, and social-media sellers, especially for medicines. Prices far below normal are a warning sign.</p></details>
@@ -201,7 +216,7 @@ footer{text-align:center;padding:30px 20px 90px;color:var(--mut);font-size:11px;
 
 <footer>
 ChecknVerify © 2026 · Data from <a href="https://nafdac.gov.ng/category/recalls-and-alerts/" target="_blank" rel="noopener">NAFDAC</a><br>
-<a href="#home">Home</a> · <a href="#banned">Banned Products</a> · <a href="#report">Report a Product</a> · <a href="#faq">FAQ</a><br>
+<a href="#home">Home</a> · <a href="#verify">Verify Product</a> · <a href="#banned">Banned Products</a> · <a href="#report">Report a Product</a> · <a href="#faq">FAQ</a><br>
 A product not listed as an alert is not automatically certified as genuine.
 </footer>
 
@@ -226,12 +241,12 @@ A product not listed as an alert is not automatically certified as genuine.
 /* CONFIG: Supabase URL + anon key enable (1) saving reports, (2) the NRN/Status lookup (table greenbook_products, filled by ingest-greenbook.mjs),
    (3) the AI assistant (edge function "ai-bot"). Leave blank for local demo mode.
    nafdacProxy: optional JSON URL [{date,title,link}] if browsers are blocked from NAFDAC's alerts page. */
-const CFG={supabaseUrl:"https://ginxwjvjhqfgxxymfacj.supabase.co",supabaseAnonKey:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdpbnh3anZqaHFmZ3h4eW1mYWNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NjA3NzUsImV4cCI6MjEwNjMzNjc3NX0.DZrr_A1py7bB4ikfNo2N9rH49dAlc-ROHulXYs7NmF8",nafdacProxy:"https://greenbook.nafdac.gov.ng/?draw=1&columns%5B0%5D%5Bdata%5D=product_name&columns%5B0%5D%5Bname%5D=product_name&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=true&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=ingredient.ingredient_name&columns%5B1%5D%5Bname%5D=ingredient.ingredient_name&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=true&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=product_category.name&columns%5B2%5D%5Bname%5D=product_category.name&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=product_category_id&columns%5B3%5D%5Bname%5D=product_category_id&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=true&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=ingredient.synonym&columns%5B4%5D%5Bname%5D=ingredient.synonym&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=true&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=NAFDAC&columns%5B5%5D%5Bname%5D=NAFDAC&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=true&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=form.name&columns%5B6%5D%5Bname%5D=form.name&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=true&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=route.name&columns%5B7%5D%5Bname%5D=route.name&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=true&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B8%5D%5Bdata%5D=strength&columns%5B8%5D%5Bname%5D=strength&columns%5B8%5D%5Bsearchable%5D=true&columns%5B8%5D%5Borderable%5D=true&columns%5B8%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B8%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B9%5D%5Bdata%5D=applicant.name&columns%5B9%5D%5Bname%5D=applicant.name&columns%5B9%5D%5Bsearchable%5D=true&columns%5B9%5D%5Borderable%5D=true&columns%5B9%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B9%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B10%5D%5Bdata%5D=approval_date&columns%5B10%5D%5Bname%5D=approval_date&columns%5B10%5D%5Bsearchable%5D=true&columns%5B10%5D%5Borderable%5D=true&columns%5B10%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B10%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B11%5D%5Bdata%5D=status&columns%5B11%5D%5Bname%5D=status&columns%5B11%5D%5Bsearchable%5D=true&columns%5B11%5D%5Borderable%5D=true&columns%5B11%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B11%5D%5Bsearch%5D%5Bregex%5D=false&order%5B0%5D%5Bcolumn%5D=0&order%5B0%5D%5Bdir%5D=asc&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&search_ingredient=&_=1791308984667"};
+const CFG={supabaseUrl:"",supabaseAnonKey:"",nafdacProxy:""};
 const sb=(CFG.supabaseUrl&&CFG.supabaseAnonKey&&window.supabase)?window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey):null;
 const $=id=>document.getElementById(id);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const NAF="https://nafdac.gov.ng",GB="https://greenbook.nafdac.gov.ng/?draw=1&columns%5B0%5D%5Bdata%5D=product_name&columns%5B0%5D%5Bname%5D=product_name&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=true&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=ingredient.ingredient_name&columns%5B1%5D%5Bname%5D=ingredient.ingredient_name&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=true&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=product_category.name&columns%5B2%5D%5Bname%5D=product_category.name&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=product_category_id&columns%5B3%5D%5Bname%5D=product_category_id&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=true&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=ingredient.synonym&columns%5B4%5D%5Bname%5D=ingredient.synonym&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=true&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=NAFDAC&columns%5B5%5D%5Bname%5D=NAFDAC&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=true&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=form.name&columns%5B6%5D%5Bname%5D=form.name&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=true&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=route.name&columns%5B7%5D%5Bname%5D=route.name&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=true&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B8%5D%5Bdata%5D=strength&columns%5B8%5D%5Bname%5D=strength&columns%5B8%5D%5Bsearchable%5D=true&columns%5B8%5D%5Borderable%5D=true&columns%5B8%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B8%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B9%5D%5Bdata%5D=applicant.name&columns%5B9%5D%5Bname%5D=applicant.name&columns%5B9%5D%5Bsearchable%5D=true&columns%5B9%5D%5Borderable%5D=true&columns%5B9%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B9%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B10%5D%5Bdata%5D=approval_date&columns%5B10%5D%5Bname%5D=approval_date&columns%5B10%5D%5Bsearchable%5D=true&columns%5B10%5D%5Borderable%5D=true&columns%5B10%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B10%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B11%5D%5Bdata%5D=status&columns%5B11%5D%5Bname%5D=status&columns%5B11%5D%5Bsearchable%5D=true&columns%5B11%5D%5Borderable%5D=true&columns%5B11%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B11%5D%5Bsearch%5D%5Bregex%5D=false&order%5B0%5D%5Bcolumn%5D=0&order%5B0%5D%5Bdir%5D=asc&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&search_ingredient=&_=1791308984667";
+const NAF="https://nafdac.gov.ng",GB="https://greenbook.nafdac.gov.ng";
 $("fav").href="data:image/svg+xml,"+encodeURIComponent($("logoSvg").outerHTML);
 
 /* Built-in snapshot (newest notices seen 5 Oct 2026), used only if the live load fails and nothing is saved */
@@ -297,63 +312,84 @@ $("blist").innerHTML=list.slice(0,shown).map(itemHtml).join("")||'<div class="ca
 $("more").style.display=list.length>shown?"inline-block":"none";
 }
 
-/* ---------- NRN + Status lookup (copy of the NAFDAC Greenbook in Supabase) ---------- */
-async function greenbookSearch(q){
+/* ---------- NRN + Status registry (copy of the NAFDAC Greenbook in Supabase) ---------- */
+let regTotal=null;
+async function greenbookSearch(q,off=0){
 if(!sb)return {off:true};
 try{
-const c=q.replace(/[,()%*\\]/g," ").trim(),d=c.replace(/\s+/g,"-");
-const {data,error}=await sb.from("greenbook_products").select("detail_id,product_name,nrn,form,strengths,applicant_name,approval_date,status,updated_at").or(`product_name.ilike.%${c}%,nrn.ilike.%${c}%,nrn.ilike.%${d}%,active_ingredients.ilike.%${c}%`).limit(40);
+if(regTotal===null){const {count,error}=await sb.from("greenbook_products").select("gb_key",{count:"exact",head:true});if(error)throw error;regTotal=count||0}
+if(!regTotal)return {empty:true};
+const toks=q.replace(/[,()%*\\]/g," ").split(/\s+/).filter(Boolean).slice(0,5);
+let qb=sb.from("greenbook_products").select("detail_id,product_name,active_ingredients,category,nrn,form,roa,strengths,applicant_name,approval_date,status,updated_at",{count:"exact"});
+for(const t of toks)qb=qb.or(`product_name.ilike.%${t}%,nrn.ilike.%${t}%,active_ingredients.ilike.%${t}%,strengths.ilike.%${t}%,synonym.ilike.%${t}%,applicant_name.ilike.%${t}%`);
+const {data,error,count}=await qb.order("product_name").range(off,off+19);
 if(error)throw error;
-const act=r=>/^active$/i.test(r.status||"")?1:0;
-const rows=data.map(r=>({id:r.detail_id,name:r.product_name,nrn:r.nrn,form:r.form,strengths:r.strengths,applicant:r.applicant_name,approved:r.approval_date,status:r.status,synced:r.updated_at}));
-rows.sort((x,y)=>act(y)-act(x)||String(x.name).localeCompare(y.name));
-return {rows}
-}catch(e){return {err:true}}
+const act=r=>isActive(r.status)?1:0;
+const rows=data.map(r=>({id:r.detail_id,name:r.product_name,active:r.active_ingredients,category:r.category,nrn:r.nrn,form:r.form,route:r.roa,strengths:r.strengths,applicant:r.applicant_name,approved:r.approval_date,status:r.status,synced:r.updated_at}));
+rows.sort((x,y)=>act(y)-act(x));
+return {rows,matches:count||0,total:regTotal}
+}catch(e){return {err:true,msg:e&&e.message}}
 }
-function regRow(r,i){
-const s=(r.status||"").trim(),cl=!s?"un":/^active$/i.test(s)?"on":"off";
+const isActive=s=>/^active$/i.test((s||"").trim());
+function diag(reg){
+const a=src==="live"?`${items.length} live NAFDAC notices`:src==="saved"?`${items.length} saved NAFDAC notices (live feed unreachable)`:`only ${items.length} built-in sample notices (live NAFDAC feed unreachable)`;
+const r=reg.off?"registry not connected":reg.err?"registry error"+(reg.msg?": "+esc(reg.msg):""):reg.empty?"registry copy is EMPTY (run the Greenbook sync)":`registry of ${reg.total.toLocaleString()} products`;
+return `Searched: ${a} · ${r}`;
+}
+function recCard(r,i,from){
+const s=(r.status||"").trim(),cl=!s?"un":isActive(s)?"on":"off";
 const label=!s?"Status unknown":cl==="on"?"Active":"Not active · "+esc(s);
-const link=r.id?` <a href="${GB}/products/details/${esc(r.id)}" target="_blank" rel="noopener" style="font-size:12px">Open on Greenbook →</a>`:"";
-return `<div class="rrow" style="--i:${i}"><div class="rtop"><strong>${esc(r.name)}</strong><span class="st ${cl}"><i></i>${label}</span></div><div class="rmeta">NRN: <b>${esc(r.nrn||"not shown")}</b>${r.form||r.strengths?" · "+esc([r.form,r.strengths].filter(Boolean).join(" "),""):""}<br>${esc(r.applicant||"")}${r.approved?" · Approved "+esc(r.approved):""}${link}</div></div>`;
-}
-function regBlock(reg){
-const scope=`<p class="hint" style="margin-top:10px">The Greenbook lists medicines, vaccines, devices, herbals, veterinary products and disinfectants. For foods, drinks and cosmetics use <a href="https://registration.nafdac.gov.ng/" target="_blank" rel="noopener">NAFDAC's registration portal</a>.</p>`;
-if(reg.off)return `<p class="hint">NRN lookup is not connected yet. Check the number on the <a href="${GB}" target="_blank" rel="noopener">NAFDAC Greenbook</a>.</p>`+scope;
-if(reg.err)return `<p class="hint">The NRN lookup is temporarily unavailable. Check the number on the <a href="${GB}" target="_blank" rel="noopener">NAFDAC Greenbook</a>.</p>`+scope;
-if(!reg.rows.length)return `<p class="hint">No matching registration found in this lookup. It may be incomplete, so also search the <a href="${GB}" target="_blank" rel="noopener">Greenbook</a> directly.</p>`+scope;
-const more=reg.rows.length>6?`<p class="hint" style="margin-top:8px">Showing 6 of ${reg.rows.length}+ matches. Add more of the name or the NRN to narrow it, or search the <a href="${GB}" target="_blank" rel="noopener">Greenbook</a>.</p>`:"";
-const sy=reg.rows.map(r=>r.synced).filter(Boolean).sort().pop();
-return reg.rows.slice(0,6).map((r,i)=>regRow(r,i+3)).join("")+more+(sy?`<p class="hint" style="margin-top:8px">Registry copy last synced ${new Date(sy).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})}. Open a product on the Greenbook to confirm its current status.</p>`:"")+scope;
+const f=(k,v)=>v?`<div><small>${k}</small><b>${esc(v)}</b></div>`:"";
+const link=r.id?`<a href="${GB}/products/details/${esc(r.id)}" target="_blank" rel="noopener" style="font-size:12px">Open on Greenbook →</a>`:"";
+return `<div class="rcard" style="--i:${Math.min(Math.max(i-from,0),8)};${i<from?"animation:none":""}"><div class="rtop"><div><h3>${esc(r.name)}</h3><div class="hint" style="margin:0">${esc(r.applicant)}</div></div><span class="st ${cl}"><i></i>${label}</span></div><div class="fields">${f("NAFDAC reg. no.",r.nrn||"not shown")}${f("Category",r.category)}${f("Form",r.form)}${f("Strength",r.strengths)}${f("Active ingredient",r.active)}${f("Route",r.route)}${f("Approved",r.approved)}</div>${link}</div>`;
 }
 
-/* ---------- search with animation + result popup ---------- */
-function trySearch(t){$("q").value=t;homeSearch()}
+/* ---------- search: home box -> Verify page, animated, with popup for alerts ---------- */
+const vs={q:"",off:0,rows:[],matches:0,hits:[],reg:null};
 const hitsFor=q=>{const w=q.toLowerCase().split(/\s+/).filter(Boolean);return items.filter(x=>w.every(s=>x.title.toLowerCase().includes(s)))};
-async function homeSearch(){
-const q=$("q").value.trim(),note=$("qnote");
-if(q.length<2)return;
-note.style.display="none";$("sbox").classList.add("busy");$("sbtn").innerHTML='<span class="spin"></span>';
-$("sbar").style.display="block";$("sbarTxt").innerText="Scanning NAFDAC alerts and registrations…";
+function trySearch(t){$("q").value=t;homeSearch()}
+function homeSearch(){const q=$("q").value.trim();if(q.length<2)return;location.hash="#verify?q="+encodeURIComponent(q)}
+async function verifySearch(q){
+q=(q||"").trim();if(q.length<2)return;
+$("vq").value=q;history.replaceState(null,"","#verify?q="+encodeURIComponent(q));
+vs.q=q;$("vout").innerHTML="";
+$("vbox").classList.add("busy");$("vbtn").innerHTML='<span class="spin"></span>';$("vbar").style.display="block";
 try{
-const [,reg]=await Promise.all([loadNaf(),greenbookSearch(q),sleep(900)]);
-showResults(q,hitsFor(q),reg);
-}finally{$("sbox").classList.remove("busy");$("sbtn").innerText="🔍";$("sbar").style.display="none"}
+const [,reg]=await Promise.all([loadNaf(),greenbookSearch(q,0),sleep(900)]);
+Object.assign(vs,{hits:hitsFor(q),reg,rows:reg.rows||[],matches:reg.matches||0});
+vs.off=vs.rows.length;
+renderVerify(0);
+if(vs.hits.length)openAlert(vs.hits,q);
+}finally{$("vbox").classList.remove("busy");$("vbtn").innerText="🔍";$("vbar").style.display="none"}
 }
-function showResults(q,hits,reg){
-const rows=reg.rows||[];
-if(!hits.length&&!rows.length){
-const gb=reg.off?"":" The NRN lookup also found nothing, but it may be incomplete.";
-$("qnote").innerHTML=`No NAFDAC alert found for “${esc(q)}”.${gb} <strong>That does not mean it is genuine.</strong> Check the NRN on the <a href="${GB}" target="_blank" rel="noopener">NAFDAC Greenbook</a>.`;
-$("qnote").style.display="block";return;
+async function verifyMore(){
+const from=vs.rows.length,reg=await greenbookSearch(vs.q,vs.off);
+if(reg.rows){vs.rows=vs.rows.concat(reg.rows);vs.off=vs.rows.length}
+renderVerify(from);
 }
-const cf=hits.some(x=>kind(x.title)===KINDS[0]),inactive=rows.some(r=>r.status&&!/^active$/i.test(r.status));
-$("rIcon").innerText=cf?"🚨":hits.length||inactive?"⚠️":"🔎";
-$("rTitle").innerText=cf?"Counterfeit product alert":hits.length?"Product safety alert":inactive?"Registration not active":"Registered product found";
-$("rSub").innerText=`Results for “${q}”`;
-let h="",n=0;
-if(hits.length)h+=`<h4 class="sec">NAFDAC alerts (${hits.length})</h4>`+hits.slice(0,5).map(x=>`<div class="alert-item" style="--i:${n++}"><div class="hint">${fmt(x.date)}</div><h3>${esc(x.title)}</h3><span class="badge ${KCLS[kind(x.title)]}">${kind(x.title)}</span> <a href="${esc(x.link)}" target="_blank" rel="noopener" style="font-size:12px;margin-left:6px">Official notice →</a></div>`).join("")+(hits.length>5?`<p class="hint" style="margin-top:8px"><a href="#banned" onclick="$('bq').value=$('q').value;closeModal();renderBanned()">See all ${hits.length} on Banned Products →</a></p>`:"");
-h+=`<h4 class="sec">NAFDAC registration (NRN &amp; status)</h4>`+regBlock(reg);
-$("rBody").innerHTML=h;$("rm").style.display="block";$("rm").scrollTop=0;
+function renderVerify(from){
+const q=vs.q,reg=vs.reg,rows=vs.rows;
+let msg="";
+if(reg.off)msg=`The registry is not connected yet. Check the NRN on the <a href="${GB}" target="_blank" rel="noopener">NAFDAC Greenbook</a>.`;
+else if(reg.err)msg=`The registry lookup failed${reg.msg?" ("+esc(reg.msg)+")":""}. Check the NRN on the <a href="${GB}" target="_blank" rel="noopener">NAFDAC Greenbook</a>.`;
+else if(reg.empty)msg=`The registry copy in your database is empty. Run the Greenbook sync (ingest-greenbook.mjs).`;
+else if(!vs.matches)msg=`No matching registry record found. <strong>That does not mean it is genuine.</strong> This copy may not include every product, so also search the <a href="${GB}" target="_blank" rel="noopener">Greenbook</a> directly.`;
+let h=`<div class="vmeta">${vs.matches?`<strong>${vs.matches.toLocaleString()} matching record${vs.matches>1?"s":""}</strong> for “${esc(q)}”`:`Results for “${esc(q)}”`}</div>`;
+if(msg)h+=`<div class="notice" style="margin-top:8px">${msg}</div>`;
+if(vs.hits.length)h+=`<h4 class="sec">NAFDAC alerts (${vs.hits.length})</h4><div class="list">${vs.hits.slice(0,6).map(itemHtml).join("")}</div>`;
+if(rows.length)h+=`<h4 class="sec">Registered products</h4><div class="list one">${rows.map((r,i)=>recCard(r,i,from)).join("")}</div>`;
+if(vs.off<vs.matches)h+=`<div style="text-align:center"><button class="secondary-btn" onclick="verifyMore()">Show more (${(vs.matches-vs.off).toLocaleString()} left)</button></div>`;
+const sy=rows.map(r=>r.synced).filter(Boolean).sort().pop();
+h+=`<p class="hint" style="margin-top:14px">A matching record means the product is registered, not that your pack is genuine. Match the name, manufacturer, strength and batch, and confirm the status on the Greenbook.${sy?" Registry copy last synced "+new Date(sy).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})+".":""}<br>${diag(reg)}</p>`;
+$("vout").innerHTML=h;
+}
+function openAlert(hits,q){
+const cf=hits.some(x=>kind(x.title)===KINDS[0]);
+$("rIcon").innerText=cf?"🚨":"⚠️";
+$("rTitle").innerText=cf?"Counterfeit product alert":"Product safety alert";
+$("rSub").innerText=`${hits.length} NAFDAC notice${hits.length>1?"s":""} found for “${q}”`;
+$("rBody").innerHTML=`<h4 class="sec">NAFDAC alerts</h4>`+hits.slice(0,5).map((x,i)=>`<div class="alert-item" style="--i:${i}"><div class="hint">${fmt(x.date)}</div><h3>${esc(x.title)}</h3><span class="badge ${KCLS[kind(x.title)]}">${kind(x.title)}</span> <a href="${esc(x.link)}" target="_blank" rel="noopener" style="font-size:12px;margin-left:6px">Official notice →</a></div>`).join("")+(hits.length>5?`<p class="hint" style="margin-top:8px"><a href="#banned" onclick="$('bq').value=vs.q;closeModal();renderBanned()">See all ${hits.length} on Banned Products →</a></p>`:"")+`<p class="hint" style="margin-top:10px"><a href="#" onclick="closeModal();$('vout').scrollIntoView({behavior:'smooth'});return false">View registry matches ↓</a></p>`;
+$("rm").style.display="block";$("rm").scrollTop=0;
 }
 function closeModal(){$("rm").style.display="none"}
 window.onclick=e=>{if(e.target.id==="rm")closeModal()};
@@ -362,7 +398,7 @@ window.onclick=e=>{if(e.target.id==="rm")closeModal()};
 const hist=[],STOP=new Set("what which where when does have this that with from tell check about there banned fake counterfeit genuine real safe product products please should would could drug medicine alert alerts list listed notice notices recall recalled recalls mentioned know show find into been being under over".split(" "));
 const KB=[
 [/spot|identify|how (can|do) i tell|fake medicine|counterfeit/i,"To spot a fake: 1) find the NAFDAC number (NRN) and verify it, with status Active, on the Greenbook; 2) make sure product name, manufacturer and strength match the pack; 3) inspect printing, seals, batch and expiry; 4) compare with a genuine pack; 5) buy from licensed outlets. A listed number alone is not proof. See the FAQ tab."],
-[/nrn|nafdac (reg|number)|greenbook|verify|registration/i,"Search the NRN or product name on the NAFDAC Greenbook (greenbook.nafdac.gov.ng) and check the Status column: Active means the registration is currently valid. Also confirm name, manufacturer and strength match your pack. Foods, drinks and cosmetics are checked on registration.nafdac.gov.ng."],
+[/nrn|nafdac (reg|number)|greenbook|verify|registration/i,"Search the NRN or product name on the NAFDAC Greenbook (greenbook.nafdac.gov.ng) and check the Status column: Active means the registration is currently valid. Also confirm name, manufacturer and strength match your pack."],
 [/report|complain|hotline|call|phone|where do i/i,"Keep the product, packaging and receipt, take photos, then use the Report a Product tab. Also contact NAFDAC: complaints 0800-1-NAFDAC (0800-1-623322), or the Report SF form at nafdac.medsafety.io. If you feel unwell, get medical care first."],
 [/not listed|not on the list|means genuine|safe if/i,"No. Alerts only cover products that were reported and published. A product that is not listed can still be fake or unregistered, so always check the NRN and status on the Greenbook."],
 [/active|expired|status/i,"On the Greenbook, Status shows whether a registration is currently valid. Active is current; anything else (e.g. Expired) means it is not currently active, so ask the seller and check with NAFDAC."]
@@ -416,11 +452,12 @@ $("formCard").style.display="none";$("done").style.display="block";e.target.rese
 function newReport(){$("done").style.display="none";$("formCard").style.display="block";window.scrollTo(0,0)}
 
 /* ---------- page tabs ---------- */
-const PAGES=["home","banned","report","faq"];
+const PAGES=["home","verify","banned","report","faq"];
 function route(){
-const h=(location.hash||"#home").slice(1),p=PAGES.includes(h)?h:"home";
+const [h,qs]=(location.hash||"#home").slice(1).split("?"),p=PAGES.includes(h)?h:"home";
 PAGES.forEach(x=>{$("p-"+x).style.display=x===p?"block":"none";document.querySelector(`.tab[data-p="${x}"]`).classList.toggle("on",x===p)});
 window.scrollTo(0,0);
+if(p==="verify"){const q=new URLSearchParams(qs||"").get("q");if(q&&q!==vs.q){verifySearch(q)}}
 }
 window.addEventListener("hashchange",route);
 route();loadNaf();
