@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ffffff">
+<title>ChecknVerify | Product Safety</title>
+<link rel="icon" id="fav">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--tx:#111111;--mut:#666666;--a1:#ff5a00;--a2:#e63900;--bd:rgba(0,0,0,.08);--card:#ffffff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;color:var(--tx);min-height:100vh;background:linear-gradient(160deg, #ffffff 0%, #f4f5f7 60%, #e9ebf0 100%);background-attachment:fixed}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--a1)}
+.container{width:min(100% - 32px,1000px);margin:auto}
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--bd);padding:12px 0 8px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.brand svg{width:44px;height:44px;filter:drop-shadow(0 4px 10px rgba(255,90,0,.3))}
+.wm{font-size:24px;font-weight:900;letter-spacing:-0.5px}.wm span,.grad{background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
+nav{display:flex;gap:10px;overflow-x:auto;padding:6px 4px 12px;perspective:700px}
+.tab{flex:none;text-decoration:none;color:#444;font-weight:700;font-size:13px;padding:11px 16px;border-radius:12px;background:#f0f2f5;box-shadow:0 6px 0 #d1d5db,0 12px 20px rgba(0,0,0,.05),inset 0 1px 0 rgba(255,255,255,.8);transform:rotateX(14deg);transition:transform .15s,box-shadow .15s}
+.tab:hover{transform:rotateX(14deg) translateY(-3px);box-shadow:0 9px 0 #d1d5db,0 16px 24px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.8)}
+.tab.on{background:linear-gradient(180deg,var(--a1),var(--a2));color:#ffffff;transform:rotateX(0) translateY(5px);box-shadow:0 1px 0 #a32a00,0 4px 14px rgba(255,90,0,.4),inset 0 1px 0 rgba(255,255,255,.3)}
+.hero{padding:44px 0 18px}.hero h1{font-size:42px;font-weight:900;letter-spacing:-1px;line-height:1.1;margin-bottom:10px}.hero p{font-size:15px;color:var(--mut)}
+.sbox{margin-top:24px;background:#ffffff;border:1px solid var(--bd);border-radius:40px;display:flex;padding:6px;box-shadow:0 15px 35px rgba(0,0,0,.06)}
+.sbox input{flex:1;border:0;outline:0;background:transparent;padding:15px 20px;min-width:0;font-size:16px}
+.sbox input::placeholder,.field::placeholder{color:#999}
+.sbtn{border:0;background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;min-width:56px;border-radius:30px;cursor:pointer;font-size:18px;box-shadow:0 4px 0 #a32a00}
+.sbtn:active{transform:translateY(3px);box-shadow:0 1px 0 #a32a00}
+.sbox.busy{animation:glow 1.1s infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(255,90,0,0),0 15px 35px rgba(0,0,0,.06)}50%{box-shadow:0 0 0 5px rgba(255,90,0,.25),0 15px 35px rgba(0,0,0,.06)}}
+.spin{width:18px;height:18px;border:3px solid rgba(255,90,0,.3);border-top-color:var(--a1);border-radius:50%;display:inline-block;animation:rot .7s linear infinite;vertical-align:middle}
+@keyframes rot{to{transform:rotate(360deg)}}
+.sbar{display:none;margin-top:12px}.sbar .t{height:5px;border-radius:5px;background:rgba(0,0,0,.05);overflow:hidden}
+.sbar i{display:block;height:100%;width:40%;background:linear-gradient(90deg,var(--a1),var(--a2));animation:slide 1s ease-in-out infinite}
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+.sbar small{display:block;margin-top:6px;font-size:11px;color:var(--mut)}
+.sugg{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;font-size:13px;color:var(--mut);align-items:center}
+.sugg button{border:1px solid var(--bd);background:#f9f9f9;border-radius:20px;padding:6px 12px;cursor:pointer;font-size:12px;color:var(--tx)}
+.sugg button:hover{background:#f0f0f0}
+#qnote{display:none;margin-top:12px;background:rgba(255,179,71,.14);border:1px solid rgba(255,179,71,.4);border-radius:12px;padding:12px;font-size:12px;line-height:1.55;animation:rise .4s both}
+main{padding:24px 0}
+h2.pt{font-size:28px;font-weight:900;letter-spacing:-0.5px;margin-bottom:6px}.sub{color:var(--mut);font-size:14px;line-height:1.55;margin-bottom:16px}
+.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.action{background:var(--card);padding:18px;border:1px solid var(--bd);border-radius:18px;text-decoration:none;color:inherit;display:block;transition:.2s;box-shadow:0 4px 15px rgba(0,0,0,.03)}
+.action:hover{transform:translateY(-4px);border-color:var(--a1);box-shadow:0 12px 26px rgba(0,0,0,.08)}
+.action-icon{width:46px;height:46px;background:linear-gradient(135deg,rgba(255,179,71,.2),rgba(255,90,0,.2));border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:11px}
+.action strong{display:block;font-size:15px;margin-bottom:5px;font-weight:800}.action small{color:var(--mut);font-size:12px}
+.notice{background:rgba(255,90,0,.08);border:1px solid rgba(255,90,0,.2);border-radius:16px;padding:16px;margin:24px 0;font-size:13px;line-height:1.6}.notice strong{color:var(--a2)}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin:32px 0 16px}.section-title h2{font-size:20px;font-weight:800}
+.list{display:grid;grid-template-columns:1fr;gap:12px}
+.alert{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;text-decoration:none;color:inherit;display:block;transition:.2s;box-shadow:0 2px 10px rgba(0,0,0,.02)}
+.alert:hover{border-color:var(--a1);transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.06)}
+.alert .d{font-size:12px;color:var(--mut);margin-bottom:6px}.alert h3{font-size:14px;font-weight:700;line-height:1.45;margin-bottom:8px}
+.badge{display:inline-block;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:bold}
+.b-cf{color:#d10000;background:rgba(255,79,81,.15)}.b-ban{color:#fff;background:#d10000}.b-rc{color:#b37700;background:rgba(255,179,71,.2)}.b-su{color:#a87c00;background:rgba(255,226,92,.3)}.b-sa{color:#0033cc;background:rgba(120,160,255,.15)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin:12px 0}
+.chip{white-space:nowrap;border:1px solid var(--bd);background:#f9f9f9;padding:9px 14px;border-radius:30px;cursor:pointer;font-size:13px}
+.chip.on{background:linear-gradient(135deg,var(--a1),var(--a2));color:#ffffff;border-color:transparent;font-weight:bold}
+.status{font-size:13px;margin:10px 0;color:var(--mut);line-height:1.5}.status.warn{background:rgba(255,90,0,.08);border:1px solid rgba(255,90,0,.2);border-radius:12px;padding:12px;color:var(--tx)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:22px;box-shadow:0 8px 24px rgba(0,0,0,.03)}
+.form-group{margin-top:14px}.form-group label{display:block;font-size:13px;font-weight:bold;margin-bottom:6px}
+.field,.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px;border:1px solid var(--bd);border-radius:10px;outline:none;background:#f9f9f9}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--a1);background:#ffffff;box-shadow:0 0 0 3px rgba(255,90,0,.1)}
+.form-group textarea{min-height:100px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr;gap:0 12px}
+.primary-btn{width:100%;border:0;background:linear-gradient(135deg,var(--a1),var(--a2));color:#ffffff;padding:14px;border-radius:12px;margin-top:18px;cursor:pointer;font-weight:800;font-size:15px;box-shadow:0 5px 0 #a32a00}
+.primary-btn:active{transform:translateY(4px);box-shadow:0 1px 0 #a32a00}.primary-btn:disabled{opacity:.6}
+.secondary-btn{border:1px solid var(--bd);background:#f4f5f7;padding:12px 16px;border-radius:12px;cursor:pointer;font-weight:bold;margin-top:12px;color:var(--tx)}
+.secondary-btn:hover{background:#eef0f2}
+.hint{font-size:12px;color:var(--mut);margin-top:5px;line-height:1.5}
+.hp{position:absolute;left:-9999px}
+#done{display:none;text-align:center}#done .ic{font-size:48px}
+details{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.02)}
+summary{cursor:pointer;font-weight:800;font-size:15px}
+details p,details li{font-size:14px;line-height:1.65;color:#444;margin-top:10px}details ul{padding-left:20px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);z-index:100;padding:18px;overflow-y:auto;animation:fade .25s}
+@keyframes fade{from{opacity:0}}
+.mc{background:#ffffff;border:1px solid var(--bd);width:min(100%,540px);margin:30px auto;border-radius:24px;padding:26px;position:relative;box-shadow:0 30px 70px rgba(0,0,0,.15);animation:pop .55s cubic-bezier(.2,1.25,.3,1)}
+@keyframes pop{0%{opacity:0;transform:translateY(60px) scale(.85)}100%{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+.close{position:absolute;right:18px;top:12px;font-size:28px;color:var(--mut);cursor:pointer}
+.close:hover{color:var(--tx)}
+.big{font-size:44px;display:inline-block;animation:bounce 1s .3s both}
+@keyframes bounce{0%{transform:scale(0)}50%{transform:scale(1.3) rotate(-8deg)}70%{transform:scale(.95) rotate(4deg)}100%{transform:scale(1)}}
+.mc h2{font-size:24px;font-weight:900;margin:4px 0}
+.sec{font-size:12px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--a1);margin:24px 0 8px}
+.alert-item,.rrow{padding:14px 0;border-bottom:1px solid var(--bd);animation:rise .45s both;animation-delay:calc(var(--i)*80ms)}
+.alert-item h3{font-size:14px;line-height:1.45;margin:4px 0 8px;font-weight:700}
+.rtop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.rrow strong{font-size:15px;font-weight:800}
+.rmeta{font-size:13px;color:var(--mut);line-height:1.6;margin-top:6px}.rmeta b{color:var(--tx);letter-spacing:.5px}
+.st{flex:none;font-size:11px;font-weight:800;border-radius:20px;padding:5px 10px;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase}
+.st i{width:8px;height:8px;border-radius:50%;background:currentColor;display:inline-block}
+.st.on{color:#007b55;background:rgba(0,171,85,.15)}.st.on i{animation:pulse 1.4s infinite}
+.st.off{color:#b71d18;background:rgba(255,86,48,.15)}.st.un{color:#637381;background:rgba(145,158,171,.15)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,171,85,.4)}100%{box-shadow:0 0 0 8px rgba(0,171,85,0)}}
+.tips{background:rgba(255,90,0,.08);border:1px solid rgba(255,90,0,.2);border-radius:14px;padding:14px;margin-top:20px;font-size:13px;line-height:1.7}
+footer{text-align:center;padding:30px 20px 90px;color:var(--mut);font-size:12px;line-height:1.8}
+.fab{position:fixed;right:18px;bottom:18px;z-index:90;width:62px;height:62px;border-radius:50%;border:0;cursor:pointer;font-size:28px;background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;box-shadow:0 6px 0 #a32a00,0 14px 26px rgba(255,90,0,.3)}
+.fab::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid var(--a2);animation:ring 2s infinite}
+@keyframes ring{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.6);opacity:0}}
+.chat{display:none;position:fixed;right:18px;bottom:96px;z-index:90;width:350px;max-width:calc(100vw - 36px);height:480px;max-height:calc(100vh - 130px);background:#ffffff;border:1px solid var(--bd);border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.15);flex-direction:column;overflow:hidden;animation:pop .45s cubic-bezier(.2,1.25,.3,1)}
+.chat header{position:static;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:15px;background:#f9f9f9;border-bottom:1px solid var(--bd)}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+.m{max-width:85%;padding:12px 14px;border-radius:16px;font-size:14px;line-height:1.55;white-space:pre-wrap;animation:rise .3s both}
+.m.bot{background:#f0f2f5;color:var(--tx);border-bottom-left-radius:4px;align-self:flex-start}
+.m.user{background:linear-gradient(135deg,var(--a1),var(--a2));color:#ffffff;font-weight:600;border-bottom-right-radius:4px;align-self:flex-end}
+.dots span{display:inline-block;width:7px;height:7px;margin:0 2px;border-radius:50%;background:var(--mut);animation:dot 1s infinite}.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-5px);opacity:1}}
+.cq{display:flex;gap:8px;overflow-x:auto;padding:0 12px 10px}.cq button{flex:none;border:1px solid var(--bd);background:#ffffff;border-radius:16px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer}
+.cq button:hover{background:#f4f5f7}
+.cin{display:flex;gap:8px;padding:12px;border-top:1px solid var(--bd);background:#f9f9f9}.cin input{flex:1;background:#ffffff;border:1px solid var(--bd);border-radius:12px;padding:10px 14px;outline:none;min-width:0}
+.cin input:focus{border-color:var(--a1)}
+.cin button{border:0;border-radius:12px;padding:0 16px;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;font-weight:bold}
+.cnote{font-size:11px;color:var(--mut);text-align:center;padding:0 10px 10px;background:#f9f9f9}
+.list.one{grid-template-columns:1fr}
+.vmeta{margin:20px 0 8px;font-size:15px;font-weight:700}
+.rcard{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:18px;animation:rise .45s both;animation-delay:calc(var(--i)*70ms);box-shadow:0 4px 12px rgba(0,0,0,.03)}
+.rcard h3{font-size:16px;line-height:1.35;font-weight:800}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin:16px 0}
+.fields small{display:block;color:var(--mut);font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:.5px;margin-bottom:4px}
+.fields b{font-size:14px;word-break:break-word}
+.post{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 4px 15px rgba(0,0,0,.02)}
+.post summary{list-style:none}.post summary::-webkit-details-marker{display:none}
+.post .meta{font-size:12px;color:var(--mut);margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-weight:600}
+.post h3{font-size:18px;line-height:1.4;margin-bottom:8px;font-weight:800}.post .lead{font-size:14px;color:#555;line-height:1.6}
+.post .more{display:inline-block;margin-top:10px;font-size:13px;color:var(--a1);font-weight:bold}
+.post[open] .more{display:none}
+.post .body p,.post .body li{font-size:14px;line-height:1.7;color:#444;margin-top:12px}.post .body ul{padding-left:24px}
+.post .src{font-size:13px;margin-top:16px;font-weight:600}
+@media(min-width:700px){.actions{grid-template-columns:repeat(4,1fr)}.list{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header><div class="container">
+<div class="brand">
+<svg id="logoSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9d00"/><stop offset="1" stop-color="#ff5a00"/></linearGradient></defs><path d="M32 2 58 12v18c0 16-11 27-26 32C17 57 6 46 6 30V12z" fill="url(#lg)"/><path d="M32 8 52 16v14c0 12-8 22-20 26C20 52 12 42 12 30V16z" fill="#ffffff"/><circle cx="29" cy="27" r="10" fill="none" stroke="#111" stroke-width="4"/><path d="M36 34 44 42" stroke="url(#lg)" stroke-width="6" stroke-linecap="round"/><path d="M24 27.5 27.5 31 34 23.5" fill="none" stroke="#ff5a00" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<div class="wm">Checkn<span>Verify</span></div>
+</div>
+<nav>
+<a class="tab" data-p="home" href="#home">🏠 Home</a>
+<a class="tab" data-p="verify" href="#verify">🔎 Verify Product</a>
+<a class="tab" data-p="banned" href="#banned">🚫 Banned Products</a>
+<a class="tab" data-p="blog" href="#blog">📰 Blog</a>
+<a class="tab" data-p="report" href="#report">⚠️ Report a Product</a>
+<a class="tab" data-p="faq" href="#faq">❓ FAQ</a>
+</nav>
+</div></header>
+
+<section class="page" id="p-home">
+<div class="container hero">
+<h1>Check before <span class="grad">you buy.</span></h1>
+<p>Search NAFDAC recalls and counterfeit alerts, see a product's NRN and whether its registration is Active, and report suspicious products.</p>
+<div class="sbox" id="sbox"><input id="q" placeholder="Search a product or NRN, e.g. Peak Milk..." onkeydown="if(event.key==='Enter')homeSearch()"><button class="sbtn" id="sbtn" onclick="homeSearch()">🔍</button></div>
+<div class="sugg">Try: <button onclick="trySearch('Peak Milk')">Peak Milk</button><button onclick="trySearch('Augmentin')">Augmentin</button><button onclick="trySearch('Colgate')">Colgate</button></div>
+</div>
+<main class="container">
+<div class="actions">
+<a class="action" href="#banned"><div class="action-icon">🚫</div><strong>Banned Products</strong><small>Latest NAFDAC alerts</small></a>
+<a class="action" href="#report"><div class="action-icon">⚠️</div><strong>Report a Product</strong><small>No account needed</small></a>
+<a class="action" href="#faq"><div class="action-icon">❓</div><strong>Spot Fakes</strong><small>FAQ and tips</small></a>
+<a class="action" href="https://greenbook.nafdac.gov.ng" target="_blank" rel="noopener"><div class="action-icon">✅</div><strong>NAFDAC Greenbook</strong><small>Official register</small></a>
+</div>
+<div class="notice"><strong>⚠️ Important Safety Notice</strong><br>A product not appearing in the alerts does <strong>not</strong> mean it is genuine. Check the NRN and make sure its status is <strong>Active</strong>, and that the name, manufacturer and strength match your pack.</div>
+<div class="section-title"><h2>Latest NAFDAC alerts</h2><a href="#banned" style="font-size:14px; font-weight:600">See all →</a></div>
+<div id="latest" class="list"></div>
+</main>
+</section>
+
+<section class="page" id="p-verify" style="display:none"><main class="container">
+<h2 class="pt">Verify a Product</h2>
+<p class="sub">Search by product name, NAFDAC registration number (NRN), active ingredient or manufacturer. Results come from NAFDAC's recalls and alerts and a copy of the NAFDAC Greenbook register.</p>
+<div class="sbox" id="vbox"><input id="vq" placeholder="e.g. milk, Augmentin, A8-102274" onkeydown="if(event.key==='Enter')verifySearch($('vq').value)"><button class="sbtn" id="vbtn" onclick="verifySearch($('vq').value)">🔍</button></div>
+<div class="sbar" id="vbar"><div class="t"><i></i></div><small>Scanning NAFDAC alerts and registrations…</small></div>
+<p class="hint">For the strongest match, enter the NRN exactly as printed on the pack.</p>
+<div id="vout"></div>
+</main></section>
+
+<section class="page" id="p-banned" style="display:none"><main class="container">
+<h2 class="pt">Banned Products</h2>
+<p class="sub">Recalls, bans, blacklists and counterfeit alerts, loaded from NAFDAC's <a href="https://nafdac.gov.ng/category/recalls-and-alerts/" target="_blank" rel="noopener">Recalls and Safety Alerts</a> page. Tap a notice to read the official alert.</p>
+<div class="sbox" style="margin-top:0"><input id="bq" placeholder="Filter by product or company..." oninput="shown=20;renderBanned()"></div>
+<div class="chips" id="chips"></div>
+<div class="status" id="status"></div>
+<div id="blist" class="list"></div>
+<div style="text-align:center"><button class="secondary-btn" id="more" onclick="shown+=20;renderBanned()">Show more</button> <button class="secondary-btn" onclick="refreshNaf()">↻ Refresh from NAFDAC</button></div>
+<p class="hint" style="text-align:center;margin-top:16px">Category labels are worked out automatically from each notice's title. The official classification is on NAFDAC's page.</p>
+</main></section>
+
+<section class="page" id="p-blog" style="display:none"><main class="container" style="max-width:760px">
+<h2 class="pt">Blog</h2>
+<p class="sub">Plain-English explainers based on NAFDAC public alerts. Each summary is written by ChecknVerify and links to the official notice, which has the full details.</p>
+
+<details class="post" open><summary><div class="meta"><span class="badge b-cf">Counterfeit alert</span><span>19 Aug 2026 · Public Alert 041/2026</span></div><h3>Fake toothpaste, one letter apart: ORACIRE+ vs ORACARE+</h3><p class="lead">NAFDAC warned about a suspected counterfeit toothpaste sold under a name almost identical to a registered brand.</p><span class="more">Read more ↓</span></summary>
+<div class="body"><p>NAFDAC says a toothpaste called <strong>ORACIRE+</strong> is circulating in Nigeria under the guise of the registered <strong>ORACARE+</strong>. The alert followed a formal complaint and a market intelligence report. NAFDAC states that the origin, composition, safety and quality of the suspected counterfeit have not been verified, so nobody can say what is in the tube.</p>
+<p>The alert is about the look-alike product only. It does not say the registered ORACARE+ is fake or unsafe.</p>
+<p><strong>What to take from it</strong></p><ul><li>Read brand names letter by letter. One changed vowel can be the whole difference.</li><li>Compare the pack with a tube you know is genuine, and check the NAFDAC number on the Verify Product tab.</li><li>If you find the look-alike, keep it and report it (see the FAQ for NAFDAC's reporting channels).</li></ul>
+<p class="src">Source: <a href="https://nafdac.gov.ng/public-alert-no-041-2026-alert-on-suspected-counterfeit-oracire-toothpaste/" target="_blank" rel="noopener">NAFDAC Public Alert No. 041/2026</a></p></div></details>
+
+<details class="post"><summary><div class="meta"><span class="badge b-cf">Falsified medicine</span><span>19 Aug 2026 · Public Alert 042/2026</span></div><h3>A registration number that doesn't exist: the Kano antimalarial seizure</h3><p class="lead">A seized malaria medicine carried a NAFDAC number that NAFDAC says is fake.</p><span class="more">Read more ↓</span></summary>
+<div class="body"><p>NAFDAC announced the seizure of suspected falsified <strong>Artemether/Lumefantrine 80mg/480mg</strong>, purportedly made by Bandaram Pharma Packleh Ltd (BPPL), India. The alert lists the registration number on the pack as <strong>02-3457 (fake)</strong> and classifies the product as a Falsified (F) medical product. Press reports say it was intercepted during routine surveillance at a wholesale centre in Kano.</p>
+<p>NAFDAC warns that falsified antimalarials can lead to treatment failure, a worsening illness and drug resistance.</p>
+<p><strong>What to take from it</strong></p><ul><li>A number printed on a box proves nothing by itself. Look it up, and make sure the product name, manufacturer and strength match the record.</li><li>Buy medicines only from licensed pharmacies.</li><li>Report suspected sales to the nearest NAFDAC office.</li></ul>
+<p class="src">Source: <a href="https://nafdac.gov.ng/public-alert-no-042-2026-alert-on-the-seizure-of-suspected-substandard-and-falsified-bppl-artemether-lumefantrine-80mg-480mg/" target="_blank" rel="noopener">NAFDAC Public Alert No. 042/2026</a></p></div></details>
+
+<details class="post"><summary><div class="meta"><span class="badge b-su">Substandard batch</span><span>2025 · Updated Public Alert 030A/2025</span></div><h3>Registered, but a bad batch: the ARTEMETRIN DS alert</h3><p class="lead">A registered antimalarial can still have a batch that fails quality tests.</p><span class="more">Read more ↓</span></summary>
+<div class="body"><p>NAFDAC's updated alert describes <strong>ARTEMETRIN DS</strong> (Artemether/Lumefantrine 80mg/480mg), a registered product labelled as made by A.C. Drugs Ltd in Enugu. NAFDAC reports that batch <strong>Q011G</strong> (manufactured 07/23, expiry 06/25) contained only 59.2% of the stated artemether and 71.2% of the stated lumefantrine, outside the expected range, and classed it as substandard.</p>
+<p>Too little active ingredient can cause treatment failure and contribute to drug resistance.</p>
+<p><strong>What to take from it</strong></p><ul><li>An Active registration shows the product is registered. It does not guarantee every batch.</li><li>Check the batch number and expiry date on your pack against any alert for that product.</li></ul>
+<p class="src">Source: <a href="https://nafdac.gov.ng/public-alert-no-030a-2025-sale-of-confirmed-substandard-artemetrin-ds-tablets/" target="_blank" rel="noopener">NAFDAC Updated Public Alert No. 030A/2025</a></p></div></details>
+
+<details class="post"><summary><div class="meta"><span class="badge b-sa">Guide</span><span>Evergreen</span></div><h3>How to read a NAFDAC alert in 60 seconds</h3><p class="lead">Six things to look for before you decide whether an alert affects you.</p><span class="more">Read more ↓</span></summary>
+<div class="body"><ul><li><strong>The exact product name.</strong> Look-alike names are common, and an alert may be about a copy rather than the real brand.</li><li><strong>The manufacturer and NAFDAC number on the alert.</strong> Compare both with your pack. Some alerts point out that the number shown on the fake does not exist.</li><li><strong>Batch numbers and dates.</strong> Many alerts cover specific batches only, not every pack of a brand.</li><li><strong>The classification.</strong> Counterfeit and falsified mean the product is not what it claims to be. Substandard means it fails quality standards. A recall means a manufacturer or regulator is pulling product back.</li><li><strong>What NAFDAC asks you to do.</strong> This is usually to stop using it, keep the pack, and report it.</li><li><strong>The date.</strong> Check whether the notice has been updated.</li></ul>
+<p>A brand appearing in an alert does not mean all of its products are unsafe, and a product missing from the alerts is not proven genuine. Use the Verify Product tab to check the NRN and status too.</p>
+<p class="src">Browse all notices: <a href="https://nafdac.gov.ng/category/recalls-and-alerts/" target="_blank" rel="noopener">NAFDAC Recalls and Safety Alerts</a></p></div></details>
+</main></section>
+
+<section class="page" id="p-report" style="display:none"><main class="container" style="max-width:640px">
+<h2 class="pt">Report a Suspicious Product</h2>
+<p class="sub">Anyone can report. No account needed. Reports are reviewed by the ChecknVerify team and are not published automatically.</p>
+<div class="notice" style="margin-top:0">ChecknVerify is not an official NAFDAC channel. For urgent safety concerns, also call NAFDAC's complaints line <strong>0800-1-NAFDAC (0800-1-623322)</strong> or email <strong>sf.alert@nafdac.gov.ng</strong>.</div>
+<div class="card" id="formCard"><form onsubmit="submitReport(event)">
+<div class="form-group"><label>Product name *</label><input id="rProduct" required maxlength="150" placeholder="e.g. Peak Milk 400g"></div>
+<div class="row"><div class="form-group"><label>Category *</label><select id="rCategory" required><option value="">Select category</option><option>Food</option><option>Medicine</option><option>Beverage</option><option>Cosmetics</option><option>Other</option></select></div>
+<div class="form-group"><label>Batch / lot number</label><input id="rBatch" maxlength="80" placeholder="If available"></div></div>
+<div class="row"><div class="form-group"><label>Expiry date</label><input id="rExpiry" type="date"></div>
+<div class="form-group"><label>NAFDAC number (NRN) on pack</label><input id="rNaf" maxlength="40" placeholder="If any"></div></div>
+<div class="form-group"><label>Where was it bought? *</label><input id="rLocation" required maxlength="200" placeholder="Shop, market, pharmacy, online seller, area/city"></div>
+<div class="form-group"><label>Seller name</label><input id="rSeller" maxlength="150" placeholder="If known"></div>
+<div class="form-group"><label>Why do you think it is fake or unsafe? *</label><textarea id="rDetails" required maxlength="2000" placeholder="Describe what looks wrong: packaging, taste, smell, side effects, price..."></textarea></div>
+<div class="form-group"><label>Photo (optional, max 5 MB)</label><input type="file" id="rPhoto" accept="image/jpeg,image/png,image/webp"><div class="hint">Front, back, and the batch/expiry area help most. Photos can contain location data, so share only what you are comfortable with.</div></div>
+<div class="form-group"><label>Contact (optional, only if you want us to follow up)</label><input id="rName" maxlength="100" placeholder="Name" style="margin-bottom:8px"><div class="row"><input id="rPhone" maxlength="20" placeholder="Phone" style="margin-bottom:8px"><input id="rEmail" type="email" maxlength="120" placeholder="Email" style="margin-bottom:8px"></div></div>
+<input class="hp" id="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+<button class="primary-btn" id="sendBtn">Submit report</button>
+</form></div>
+<div class="card" id="done"><div class="ic">✅</div><h2 class="pt" style="margin-top:8px">Report received</h2><p class="sub">Your reference is</p><p style="font-size:24px;font-weight:900" class="grad" id="refOut"></p><p class="sub" style="margin-top:12px" id="doneNote"></p><button class="secondary-btn" onclick="newReport()">Report another product</button></div>
+</main></section>
+
+<section class="page" id="p-faq" style="display:none"><main class="container" style="max-width:760px">
+<h2 class="pt">FAQ: Spotting Counterfeits and Reporting</h2>
+<p class="sub">Practical checks before you buy or use a product. You can also ask the assistant (🤖, bottom right).</p>
+<div class="section-title"><h2>How to spot a counterfeit</h2></div>
+<details open><summary>1. Look for a NAFDAC registration number (NRN)</summary><p>Registered products sold in Nigeria should carry a NAFDAC number. If there is none, do not buy it. A number alone is not proof: counterfeiters can copy real numbers, so go to step 2.</p></details>
+<details><summary>2. Verify the NRN and its status on the Greenbook</summary><p>Search the number or product name at <a href="https://greenbook.nafdac.gov.ng" target="_blank" rel="noopener">greenbook.nafdac.gov.ng</a>. Check that the <strong>product name, manufacturer and strength</strong> match your pack, and look at the <strong>Status</strong> column. If the status is anything other than Active (for example Expired), the registration is not currently active, so ask the seller and check with NAFDAC. If you cannot find a product, it may not be in the copy of the register yet, so search the Greenbook directly or ask NAFDAC.</p></details>
+<details><summary>3. Inspect the packaging closely</summary><ul><li>Spelling mistakes, blurry logos or colours that look off</li><li>Uneven or broken seals, loose caps, glue marks</li><li>Batch number and expiry date missing, smudged, or stamped on afterwards</li><li>Labels that peel or differ from a pack you know is genuine</li></ul></details>
+<details><summary>4. Check the batch against official alerts</summary><p>NAFDAC alerts often name specific brands, batch numbers and manufacturers. Search the product on the <a href="#banned">Banned Products</a> page and read the full notice for what to look for.</p></details>
+<details><summary>5. Be careful where you buy</summary><p>Prefer licensed pharmacies and established shops. Be cautious with street hawkers, unlabelled repackaged goods, and social-media sellers, especially for medicines. Prices far below normal are a warning sign.</p></details>
+<details><summary>6. Compare with a genuine product</summary><p>If you can, compare weight, smell, colour, texture and taste with a pack you trust. If something is different, or you feel unwell after using it, stop and keep the pack.</p></details>
+<details><summary>Does "not listed" mean a product is genuine?</summary><p>No. Alerts only cover products that have been reported and published. A product that is not on the list can still be fake or unregistered, so always do the Greenbook check.</p></details>
+<div class="section-title"><h2>Reporting a suspicious product</h2></div>
+<details open><summary>What should I do if I think a product is fake?</summary><ul><li>Stop using it, and seek medical help first if you feel unwell.</li><li>Keep the product, packaging and receipt. Do not throw them away.</li><li>Take clear photos: front, back, batch/expiry area and the NAFDAC number.</li><li>Note where, when and from whom you bought it.</li><li>Report it on our <a href="#report">Report a Product</a> page, and also contact NAFDAC directly (below).</li></ul></details>
+<details><summary>How do I report to NAFDAC?</summary><p>NAFDAC's website lists a complaints line: <strong>0800-1-NAFDAC (0800-1-623322)</strong>, and an enquiries line: 0700-1-NAFDAC (0700-1-623322). In its recent alerts NAFDAC also asks people to email <strong>sf.alert@nafdac.gov.ng</strong>, to use its <strong>Med Safety app</strong>.</p></details>
+</main></section>
+</body>
+<script>
+  const $ = id => document.getElementById(id);
+
+  // --- Tab Navigation Logic ---
+  function switchTab(tabId) {
+    document.querySelectorAll('.page').forEach(page => page.style.display = 'none');
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('on'));
+    
+    const targetPage = $('p-' + tabId);
+    if (targetPage) targetPage.style.display = 'block';
+    
+    const activeTab = document.querySelector(`.tab[data-p="${tabId}"]`);
+    if (activeTab) activeTab.classList.add('on');
+    
+    window.scrollTo(0,0);
+  }
+
+  window.addEventListener('hashchange', () => {
+    let hash = window.location.hash.substring(1) || 'home';
+    switchTab(hash);
+  });
+
+  window.addEventListener('DOMContentLoaded', () => {
+    let hash = window.location.hash.substring(1) || 'home';
+    switchTab(hash);
+    
+    // Auto-load banned alerts if that tab is opened
+    if(hash === 'banned') renderBanned();
+  });
+
+  // --- Search Functions ---
+  function homeSearch() {
+    let query = $('q').value.trim();
+    if (query) {
+      window.location.hash = 'verify';
+      setTimeout(() => {
+        $('vq').value = query;
+        verifySearch(query);
+      }, 50);
+    }
+  }
+
+  function trySearch(query) {
+    $('q').value = query;
+    homeSearch();
+  }
+
+  // --- LIVE GREENBOOK SEARCH LOGIC ---
+  async function verifySearch(query) {
+    if (!query) return;
+    
+    $('vbar').style.display = 'block';$('vout').innerHTML = ''; 
+    
+    try {
+      // ⚠️ REPLACE THIS URL WITH YOUR SUPABASE FUNCTION OR API ENDPOINT
+      const response = await fetch(`https://your-backend-or-proxy.com/api/greenbook?search=${encodeURIComponent(query)}`);
+      
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json(); // Assumes your API returns an array of products
+
+      if (data.length === 0) {
+        $('vout').innerHTML = `
+          <div class="rcard" style="text-align:center; padding:40px 20px;">
+            <div class="big" style="font-size:50px; margin-bottom:15px;">🤷🏽‍♂️</div>
+            <h3>No results found</h3>
+            <p class="rmeta">We couldn't find "<b>${query}</b>" in the Greenbook register.</p>
+          </div>`;
+      } else {
+        let html = '';
+        data.forEach((item, index) => {
+          // Determine status badge color based on NAFDAC status
+          const statusText = item.status ? item.status.toLowerCase() : 'unknown';
+          let statusClass = 'st un'; // default grey
+          if (statusText === 'active') statusClass = 'st on'; // green pulsing
+          if (statusText === 'expired' || statusText === 'inactive') statusClass = 'st off'; // red
+
+          // Construct the UI card for each product
+          html += `
+            <div class="rcard" style="--i:${index}">
+              <div class="rtop">
+                <h3>${item.productName || 'Unnamed Product'}</h3>
+                <span class="${statusClass}"><i></i> ${item.status || 'Unknown'}</span>
+              </div>
+              <div class="fields">
+                <div><small>NAFDAC NUMBER (NRN)</small><b>${item.nrn || 'N/A'}</b></div>
+                <div><small>MANUFACTURER</small><b>${item.manufacturer || 'N/A'}</b></div>
+              </div>
+              ${item.activeIngredient ? `<div style="font-size:13px; color:var(--mut); margin-top:8px;">Active: ${item.activeIngredient}</div>` : ''}
+            </div>
+          `;
+        });
+        $('vout').innerHTML = html;
+      }
+    } catch (error) {
+      console.error("Search failed:", error);
+      $('vout').innerHTML = `
+        <div class="rcard" style="border-color: #d10000; background: rgba(255,79,81,.05);">
+          <h3 style="color:#d10000; margin-bottom:5px;">⚠️ Search Error</h3>
+          <p class="rmeta">Unable to connect to the database. If you are querying NAFDAC directly from the browser, it is likely being blocked by CORS. Route the request through your Supabase backend.</p>
+        </div>`;
+    } finally {
+      $('vbar').style.display = 'none';
+    }
+  }
+
+  // --- LIVE NAFDAC ALERTS LOGIC ---
+  let shown = 20;
+  let cachedAlerts = []; // Store alerts locally so we don't re-fetch on every keystroke
+
+  async function renderBanned() {
+    const query = $('bq').value.toLowerCase();
+    const listContainer = $('blist');
+
+    // Fetch data only if we haven't already
+    if (cachedAlerts.length === 0) {
+      listContainer.innerHTML = '<div class="sbar" style="display:block; margin:20px 0;"><div class="t"><i></i></div></div>';
+      
+      try {
+        // ⚠️ REPLACE THIS URL WITH YOUR SUPABASE FUNCTION OR API ENDPOINT
+        const response = await fetch(`https://your-backend-or-proxy.com/api/nafdac-alerts`);
+        if (!response.ok) throw new Error('Alerts fetch failed');
+        cachedAlerts = await response.json(); 
+      } catch (error) {
+        listContainer.innerHTML = `<p style="color:var(--a2); text-align:center; margin-top:20px;"><b>Failed to load alerts.</b><br>Check your API connection.</p>`;
+        return;
+      }
+    }
+
+    // Filter and render the UI
+    let html = '';
+    let count = 0;
+
+    cachedAlerts.forEach((alert, index) => {
+      // Filter by search box
+      if (query && !alert.title.toLowerCase().includes(query) && !alert.category.toLowerCase().includes(query)) return;
+      if (count >= shown) return; 
+
+      html += `
+        <a href="${alert.url || '#'}" target="_blank" class="alert" style="--i:${count}">
+          <div class="d">${alert.date || 'Recent'}</div>
+          <h3>${alert.title}</h3>
+          <span class="badge ${alert.category.toLowerCase().includes('fake') ? 'b-cf' : 'b-sa'}">${alert.category || 'Alert'}</span>
+        </a>
+      `;
+      count++;
+    });
+
+    listContainer.innerHTML = html || `<p style="text-align:center; color:var(--mut); margin-top:20px; font-size:14px;">No alerts match your search.</p>`;
+  }
+
+  function refreshNaf() {
+    cachedAlerts = []; // Clear cache
+    shown = 20;
+    $('bq').value = '';
+    renderBanned(); // Trigger fresh fetch
+  }
+
+  // --- Form Logic ---
+  async function submitReport(e) { 
+    e.preventDefault(); 
+    const btn = $('sendBtn');
+    btn.disabled = true;
+    btn.innerText = 'Submitting...';
+
+    // Collect form data
+    const payload = {
+      product: $('rProduct').value,
+      category: $('rCategory').value,
+      batch: $('rBatch').value,
+      location: $('rLocation').value,
+      details: $('rDetails').value,
+    };
+
+    try {
+      // ⚠️ REPLACE WITH YOUR SUPABASE INSERT LOGIC
+      /* 
+      const { data, error } = await supabase.from('reports').insert([payload]);
+      if (error) throw error;
+      */
+      
+      // Simulate network delay
+      await new Promise(r => setTimeout(r, 800));
+
+      $('formCard').style.display = 'none';
+      $('done').style.display = 'block';$('refOut').innerText = 'REP-' + Math.floor(1000 + Math.random() * 9000);
+    } catch (error) {
+      alert("Failed to submit report. Please try again.");
+    } finally {
+      btn.disabled = false;
+      btn.innerText = 'Submit report';
+    }
+  }
+
+  function newReport() {
+    $('formCard').style.display = 'block';
+    $('done').style.display = 'none';$('formCard').querySelector('form').reset();
+  }
+</script>
+</html>
