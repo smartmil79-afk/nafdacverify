@@ -278,7 +278,7 @@ A product not listed as an alert is not automatically certified as genuine.
 /* CONFIG: Supabase URL + anon key enable (1) saving reports, (2) the NRN/Status lookup (table greenbook_products, filled by ingest-greenbook.mjs),
    (3) the AI assistant (edge function "ai-bot"). Leave blank for local demo mode.
    nafdacProxy: optional JSON URL [{date,title,link}] if browsers are blocked from NAFDAC's alerts page. */
-const CFG={supabaseUrl:"",supabaseAnonKey:"",nafdacProxy:""};
+const CFG={supabaseUrl:"",supabaseAnonKey:"",nafdacProxy:"",aiBot:false}; /* aiBot: set true only after deploying the ai-bot function with an Anthropic API key (paid) */
 const sb=(CFG.supabaseUrl&&CFG.supabaseAnonKey&&window.supabase)?window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey):null;
 const $=id=>document.getElementById(id);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -447,13 +447,13 @@ const k=KB.find(([re])=>re.test(t));
 return k?k[1]:"I can help with spotting fake products, checking an NRN, and reporting. Try asking about a product name, e.g. “Is Peak Milk in the alerts?”. For anything urgent, call NAFDAC on 0800-1-NAFDAC (0800-1-623322).";
 }
 function addMsg(role,text){const d=document.createElement("div");d.className="m "+role;d.textContent=text;$("msgs").appendChild(d);$("msgs").scrollTop=1e6;return d}
-function toggleChat(){const c=$("chat");const open=c.style.display==="flex";c.style.display=open?"none":"flex";if(!open&&!$("msgs").children.length){loadNaf();addMsg("bot","Hi! I'm the ChecknVerify assistant. Ask me how to spot fake products, verify an NRN, or whether a product appears in NAFDAC alerts."+(sb?"":"\n\n(Basic mode: connect Supabase and the ai-bot function for full AI answers.)"))}}
+function toggleChat(){const c=$("chat");const open=c.style.display==="flex";c.style.display=open?"none":"flex";if(!open&&!$("msgs").children.length){loadNaf();addMsg("bot","Hi! I'm the ChecknVerify assistant. Ask me how to spot fake products, verify an NRN, or whether a product appears in NAFDAC alerts."+"")}}
 async function sendChat(text){
 const t=(text||$("cin").value).trim();if(!t)return;$("cin").value="";
 addMsg("user",t);hist.push({role:"user",content:t.slice(0,500)});
 const ty=document.createElement("div");ty.className="m bot dots";ty.innerHTML="<span></span><span></span><span></span>";$("msgs").appendChild(ty);$("msgs").scrollTop=1e6;
 const hits=findAlerts(t);let reply;
-if(sb){try{const {data,error}=await sb.functions.invoke("ai-bot",{body:{messages:hist.slice(-8),context:hits.slice(0,5).map(x=>fmt(x.date)+": "+x.title).join("\n")}});if(error||!data||!data.reply)throw 0;reply=data.reply}catch(e){reply=localAnswer(t,hits)+"\n\n(The AI service is unavailable, so this is a basic answer.)"}}
+if(sb&&CFG.aiBot){try{const {data,error}=await sb.functions.invoke("ai-bot",{body:{messages:hist.slice(-8),context:hits.slice(0,5).map(x=>fmt(x.date)+": "+x.title).join("\n")}});if(error||!data||!data.reply)throw 0;reply=data.reply}catch(e){reply=localAnswer(t,hits)+"\n\n(The AI service is unavailable, so this is a basic answer.)"}}
 else{await sleep(600);reply=localAnswer(t,hits)}
 ty.remove();addMsg("bot",reply);hist.push({role:"assistant",content:reply.slice(0,500)});
 }
