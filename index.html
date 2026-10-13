@@ -133,6 +133,7 @@ footer{text-align:center;padding:30px 20px 20px;color:var(--mut);font-size:11px;
 .cq{display:flex;gap:6px;overflow-x:auto;padding:0 12px 8px}.cq button{flex:none;border:1px solid var(--bd);background:var(--glass);border-radius:16px;padding:6px 10px;font-size:11px;cursor:pointer}
 .cin{display:flex;gap:8px;padding:10px;border-top:1px solid var(--bd)}.cin input{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--bd);border-radius:999px;padding:10px 14px;outline:none;min-width:0}
 .cin button{border:0;border-radius:50%;width:40px;cursor:pointer;background:var(--neon);color:#0a1200;font-weight:bold}
+.qr{display:flex;flex-wrap:wrap;gap:6px;align-self:flex-start;animation:rise .3s both}.qr button{border:1px solid rgba(180,240,0,.4);background:rgba(180,240,0,.08);color:var(--neon2);border-radius:999px;padding:7px 12px;font-size:12px;cursor:pointer}.qr button:hover{background:rgba(180,240,0,.18)}
 .cnote{font-size:10px;color:var(--mut);text-align:center;padding:0 10px 8px}
 /* intro splash */
 #splash{position:fixed;inset:0;z-index:999;background:#050505;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .7s ease,visibility .7s;animation:splashout .01s 6s forwards}
@@ -317,7 +318,6 @@ A product not listed as an alert is not automatically certified as genuine.
 <div class="chat" id="chat">
 <header><span>🤖 ChecknVerify Assistant</span><span class="close" style="position:static;font-size:22px" onclick="toggleChat()">&times;</span></header>
 <div class="msgs" id="msgs"></div>
-<div class="cq"><button onclick="sendChat('How do I spot fake medicine?')">Spot fake medicine</button><button onclick="sendChat('How do I verify an NRN?')">Verify an NRN</button><button onclick="sendChat('How do I report a fake product?')">Report a fake</button></div>
 <div class="cin"><input id="cin" placeholder="Ask a question…" maxlength="500" onkeydown="if(event.key==='Enter')sendChat()"><button onclick="sendChat()">➤</button></div>
 <div class="cnote">Answers can be wrong and are not medical advice. Please do not share personal details. Verify with NAFDAC.</div>
 </div>
@@ -480,51 +480,137 @@ $("rm").style.display="block";$("rm").scrollTop=0;
 function closeModal(){$("rm").style.display="none"}
 window.onclick=e=>{if(e.target.id==="rm")closeModal()};
 
-/* ---------- AI assistant ---------- */
+/* ---------- assistant: greetings, intents, live lookups, quick replies ---------- */
 const hist=[],STOP=new Set("what which where when does have this that with from tell check about there banned fake counterfeit genuine real safe product products please should would could drug medicine alert alerts list listed notice notices recall recalled recalls mentioned know show find into been being under over".split(" "));
-const KB=[
-[/spot|identify|how (can|do) i tell|fake medicine|counterfeit/i,"To spot a fake: 1) find the NAFDAC number (NRN) and verify it, with status Active, on the Greenbook; 2) make sure product name, manufacturer and strength match the pack; 3) inspect printing, seals, batch and expiry; 4) compare with a genuine pack; 5) buy from licensed outlets. A listed number alone is not proof. See the FAQ tab."],
-[/nrn|nafdac (reg|number)|greenbook|verify|registration/i,"Search the NRN or product name on the NAFDAC Greenbook (greenbook.nafdac.gov.ng) and check the Status column: Active means the registration is currently valid. Also confirm name, manufacturer and strength match your pack."],
-[/report|complain|hotline|call|phone|where do i/i,"Keep the product, packaging and receipt, take photos, then use the Report a Product tab. Also contact NAFDAC: complaints 0800-1-NAFDAC (0800-1-623322), email sf.alert@nafdac.gov.ng, the Med Safety app, or the Report SF form at nafdac.medsafety.io. If you feel unwell, get medical care first."],
-[/not listed|not on the list|means genuine|safe if/i,"No. Alerts only cover products that were reported and published. A product that is not listed can still be fake or unregistered, so always check the NRN and status on the Greenbook."],
-[/active|expired|status/i,"On the Greenbook, Status shows whether a registration is currently valid. Active is current; anything else (e.g. Expired) means it is not currently active, so ask the seller and check with NAFDAC."]
+const STOP2=new Set("the and for how can are you not was did why who has had its but any all out get got use used buy bought sell selling look looks looking mean means spot identify verify check checking report reporting nafdac registered registration number numbers batch expiry status active valid legit".split(" "));
+const NAME_STOP=new Set("looking trying not sure new worried confused buying selling here there fine good great okay just also still really very interested concerned afraid scared unsure curious wondering asking checking reporting".split(" "));
+const chatToks=t=>t.toLowerCase().replace(/[^a-z0-9\- ]/g," ").split(/\s+/).filter(x=>x.length>2&&!STOP.has(x)&&!STOP2.has(x));
+const NRN_RE=/\b[a-z]?\d{1,2}-\d{3,}\b/i;
+const VERDICT=/\b(is|are|does|do|any|check|about)\b.*\b(fake|counterfeit|banned|safe|genuine|registered|real|original|alert|recall|legit|ok|good|expired|valid|approved)\b/i;
+let userName="";
+const GREET=/^\s*(hi+|hello+|hey+|hiya|yo|good\s*(?:morning|afternoon|evening|day)|sannu|bawo|kedu|how far|what'?s up|sup)\b[\s,!.]*/i;
+const NAMEPH=/\b(?:my name is|call me|i am|i'm|im|am|this is)\s+([a-z][a-z'-]{1,19})\b/i;
+const cap=w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();
+const hello=g=>/morning/.test(g)?"Good morning":/afternoon/.test(g)?"Good afternoon":/evening/.test(g)?"Good evening":/how far/.test(g)?"How far":"Hello";
+function parseTalk(t){
+const g=t.match(GREET),m=t.match(NAMEPH);let name="";
+if(m){const w=m[1].toLowerCase(),short=t.trim().split(/\s+/).length<=5;if((g||/my name is|call me/i.test(m[0])||short)&&!NAME_STOP.has(w)&&!STOP.has(w)&&!STOP2.has(w))name=cap(m[1])}
+if(name)userName=name;
+let rest=t.replace(GREET,"");if(name)rest=rest.replace(NAMEPH,"");
+rest=rest.replace(/^[\s,.!-]+|[\s,.!-]+$/g,"").replace(/^(and|but|so)\b\s*/i,"");
+return {greet:g?g[1].toLowerCase():"",name,rest};
+}
+const nm=()=>userName?", "+userName:"";
+const START_CHIPS=["Check a product","How do I spot a fake?","How do I report one?"];
+function greetReply(st){
+const hi=st.greet?hello(st.greet)+(userName?" "+userName:"")+"! 👋":"Nice to meet you"+nm()+"! 👋";
+return hi+" I'm the ChecknVerify assistant. I help you check for fake, counterfeit, banned and unregistered products in Nigeria. What would you like to do?";
+}
+const TALK=[
+[/^\s*(thanks?|thank you|thx|ok(ay)? thanks|much appreciated)\b/i,()=>`You're welcome${nm()}! Anything else you'd like to check?`],
+[/^\s*(bye|goodbye|see you|good night|later)\b/i,()=>`Goodbye${nm()}! Stay safe, and always check before you buy. 👋`],
+[/how are you|how('?s| is) it going|how you dey|how do you do/i,()=>`I'm doing well, thank you${nm()}! How can I help you check a product today?`],
+[/who are you|what are you|your name|are you (a |an )?(bot|ai|robot|human|real)/i,()=>"I'm the ChecknVerify assistant, an automated helper. I search NAFDAC's public alerts and register to help you check for fake, counterfeit and banned products. I'm not part of NAFDAC and I can make mistakes, so always confirm with NAFDAC."],
+[/what can you do|how can you help|what do you do|^\s*help\b|can you help/i,()=>"I can look up a product or NRN in NAFDAC alerts and the register, explain how to spot fakes, explain what Active or Expired means, and show you how to report a fake product. Just type a product name or NRN."],
+[/^\s*(ok|okay|alright|fine|cool|nice|great|yes|yeah|yep|no|nope)[.! ]*$/i,()=>"Alright. What would you like to check?"]
 ];
-function findAlerts(t){const w=t.toLowerCase().replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(x=>x.length>3&&!STOP.has(x));return w.length?items.filter(x=>w.every(s=>x.title.toLowerCase().includes(s))):[]}
-function localAnswer(t,hits){
-if(hits.length)return `I found ${hits.length} NAFDAC notice(s) that match:\n`+hits.slice(0,3).map(x=>`• ${fmt(x.date)}: ${x.title}`).join("\n")+"\n\nOpen the Banned Products tab for the official links. Not every pack of a brand is affected, so check batch numbers in the notice.";
-const k=KB.find(([re])=>re.test(t));
-return k?k[1]:"I can only help with fake, counterfeit, banned and unregistered products and services: spotting them, checking an NRN, NAFDAC alerts and reporting. Try a product name, e.g. “Is Peak Milk in the alerts?”. For anything urgent, call NAFDAC on 0800-1-NAFDAC (0800-1-623322).";
+const K=(k,a,c)=>({k,a,c});
+const REPORT_CHIPS=["How do I report a fake product?"],SPOT=["How do I spot a fake?"],NRNQ=["How do I check an NRN?"];
+const KB=[
+K([/check|verify|look ?up|search/i,/product|something|item/i],"Sure. Type the product name or an NRN from the pack here, for example “Peak Milk”, and I'll check NAFDAC alerts and the register for it.",[]),
+K([/spot|identify|detect|tell|recogni|know if|how (can|do) i know|signs/i,/fake|counterfeit|original|genuine|authentic/i],"To spot a fake: 1) find the NRN on the pack and look it up, and make sure the status is Active; 2) check the name, manufacturer and strength match; 3) inspect printing, seals, batch and expiry; 4) compare with a genuine pack; 5) buy from licensed outlets. A real NRN can be copied onto a fake pack, so step 2 matters.",[...NRNQ,...REPORT_CHIPS]),
+K([/what('?s| is)|meaning|stands/i,/\bnrn\b|nafdac (reg|number|no)/i],"NRN is the NAFDAC Registration Number printed on registered products. Looking it up shows the product name, manufacturer, strength and whether the registration is Active.",[...NRNQ,"What does Active mean?"]),
+K([/verify|check|confirm|look ?up|search|validate/i,/nrn|nafdac|registration|number|greenbook/i],"Type the NRN or product name in the search box on the Home or Check tab, or right here in the chat, and I'll show matching records with their status. For the official record, confirm on greenbook.nafdac.gov.ng.",["What does Active mean?",...SPOT]),
+K([/\b(active|expired|inactive)\b/i,/mean|status|regist|nrn|valid|what/i],"Active means the registration is currently valid. Anything else, such as Expired, means it isn't currently active, so ask the seller why and check with NAFDAC. Even Active doesn't prove your pack is genuine.",[...SPOT,...REPORT_CHIPS]),
+K([/report|complain|call|contact|hotline|email|phone|reach/i,/nafdac|fake|counterfeit|product|seller|pharmacy|suspicious/i],"Keep the product, packaging and receipt and take photos, then use the Report tab. Also tell NAFDAC: call 0800-1-NAFDAC (0800-1-623322), email sf.alert@nafdac.gov.ng, or use the NAFDAC Med Safety app. If you feel unwell, get medical care first.",[{label:"Open Report tab",href:"#report"},...SPOT]),
+K([/bought|purchased|took|taking|used|using|consumed|ate|drank|gave/i,/fake|counterfeit|expired|bad|suspicious|substandard/i],"Stop using it, and get medical care straight away if you feel unwell. Keep the product, packaging and receipt, take photos, and report it on the Report tab and to NAFDAC (0800-1-NAFDAC).",[{label:"Open Report tab",href:"#report"}]),
+K([/difference|differ|vs|versus|meaning|mean/i,/counterfeit|falsified|substandard|unregistered/i],"Counterfeit and falsified products pretend to be something they are not. Substandard products fail quality standards. Unregistered products have no NAFDAC registration. A recall pulls a product back from the market. NAFDAC's notices use these terms, so read them closely.",[...SPOT]),
+K([/banned|ban\b|blacklist|recall|watchlist/i,/what|how|where|list|see|find/i],"Banned, blacklisted, recalled and counterfeit notices from NAFDAC are on the Banned Products tab. Tap one to read the official alert. You can also type a product name here and I'll search them.",[{label:"Open Banned Products",href:"#banned"}]),
+K([/where|which|safe place|best place/i,/buy|purchase|shop/i],"Buy from licensed pharmacies and established shops, keep your receipt, and check the NRN before you pay. Be wary of hawkers, unlabelled repacked goods and prices far below normal.",[...NRNQ]),
+K([/online|whatsapp|instagram|facebook|jumia|social|website|seller|vendor|hawker/i],"Online and social-media sellers are higher risk. Ask for the NRN and batch number and verify them before paying, avoid sellers who refuse, and prefer licensed pharmacies for medicines. Report suspicious sellers on the Report tab.",[...REPORT_CHIPS]),
+K([/risk|danger|harm|side effect|what happens|why/i,/fake|counterfeit|substandard/i],"Fake or substandard products can contain the wrong ingredients or too little of the active ingredient, which can cause treatment failure, poisoning or other harm. NAFDAC's malaria medicine alerts, for example, warn of treatment failure and drug resistance.",[...SPOT]),
+K([/service|agent|pharmacy|clinic|certificate|certification|scam|fraud|pay/i,/nafdac|fake|registration|verification/i],"Be careful with anyone who asks you to pay for NAFDAC registration or verification, especially to a personal account, or who pushes you to skip checks. Use NAFDAC's official channels (nafdac.gov.ng, 0800-1-NAFDAC) and report suspected scams on the Report tab.",[...REPORT_CHIPS]),
+K([/official|affiliated|part of|government|trust you|reliable|source|data come/i,/nafdac|you|site|app|data/i],"ChecknVerify is independent and not part of NAFDAC. Alerts and register data come from NAFDAC's public pages, and each alert links to the official notice.",[]),
+K([/batch|lot|expiry|expir|mfg|manufacture date/i],"Batch (lot) numbers and expiry dates matter because many NAFDAC alerts cover specific batches only. Compare the batch on your pack with the notice, and be suspicious of missing, smudged or re-stamped dates.",[...NRNQ]),
+K([/medicine|drug|tablet|syrup|injection|food|rice|milk|drink|beverage|cosmetic|cream|soap|toothpaste/i,/fake|counterfeit|genuine|safe|check|spot/i],q=>/medicine|drug|tablet|syrup|injection/i.test(q)?"Medicines: buy only from licensed pharmacies, check the NRN and its status, inspect seals and batch details, and don't use anything that looks, smells or tastes different.":/cosmetic|cream|soap|toothpaste/i.test(q)?"Cosmetics and toothpaste: check the NRN, the exact spelling of the brand (look-alike names are common), seals and print quality.":"Foods and drinks: check the NRN, seals, batch and expiry, compare the packaging with a pack you trust, and stop if the taste, smell or texture is off.",[...NRNQ,...REPORT_CHIPS])
+];
+const bestKB=q=>{let b=null;for(const e of KB)if(e.k.every(re=>re.test(q))&&(!b||e.k.length>b.k.length))b=e;return b};
+function findAlerts(t){const w=t.toLowerCase().replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(x=>x.length>3&&!STOP.has(x)&&!STOP2.has(x));return w.length?items.filter(x=>w.every(s=>x.title.toLowerCase().includes(s))):[]}
+async function chatRows(q){
+if(!sb)return {rows:[],off:true};
+const m=q.match(NRN_RE),s=m?m[0]:chatToks(q).slice(0,3).join(" ");
+if(!s)return {rows:[]};
+const r=await greenbookSearch(s,0);
+return {rows:r.rows||[],err:r.err,empty:r.empty};
+}
+const searchQ=q=>{const m=q.match(NRN_RE);return m?m[0]:chatToks(q).slice(0,3).join(" ")||q};
+const rowLine=r=>`• ${r.name}: NRN ${r.nrn||"n/a"}, ${r.status||"status unknown"}${r.applicant?" ("+r.applicant+")":""}`;
+function chipsFor(q,hits,rows){return hits.length||rows.length?[{label:"Open full results",href:"#verify?q="+encodeURIComponent(searchQ(q))},...REPORT_CHIPS]:[...SPOT,...NRNQ]}
+function localReply(q,hits,cr){
+const rows=cr.rows,nrn=q.match(NRN_RE),kb=bestKB(q),toks=chatToks(q);
+if(nrn){
+if(rows.length)return {text:`For ${nrn[0].toUpperCase()}:\n`+rows.slice(0,3).map(rowLine).join("\n")+"\n\nMatch the name, manufacturer and strength with your pack. A real NRN can be copied onto a fake pack.",chips:chipsFor(q,hits,rows)};
+return {text:`I couldn't find ${nrn[0].toUpperCase()} ${cr.off?"in NAFDAC alerts, and the register isn't connected here":"in my copy of the register, which may be incomplete"}. Please check it on greenbook.nafdac.gov.ng. If the number doesn't exist there, treat the product as suspicious.`,chips:[...REPORT_CHIPS,...SPOT]};
+}
+if(kb&&kb.k.length>=2&&/^(how|what|where|why|can|should)\b/i.test(q.trim()))return {text:typeof kb.a==="function"?kb.a(q):kb.a,chips:kb.c};
+if(hits.length||rows.length){
+const parts=[];
+if(hits.length)parts.push(`NAFDAC notices that mention your search (${hits.length}):\n`+hits.slice(0,3).map(x=>`• ${fmt(x.date)}: ${x.title} [${kind(x.title)}]`).join("\n")+"\nNotices often cover specific batches or look-alike products only, so read the notice before concluding.");
+if(rows.length)parts.push(`Register records (${rows.length>=5?"5+":rows.length}):\n`+rows.slice(0,3).map(rowLine).join("\n")+"\nAn Active record does not prove your pack is genuine. Match name, manufacturer, strength and batch.");
+return {text:parts.join("\n\n"),chips:chipsFor(q,hits,rows)};
+}
+if(toks.length&&(VERDICT.test(q)||q.trim().split(/\s+/).length<=4&&!kb))
+return {text:`I couldn't find a NAFDAC notice or register record matching “${toks.join(" ")}”. That does not mean it is genuine. ${cr.off?"The register isn't connected here, so I only searched alerts. ":"My register copy may be incomplete. "}Check the NRN on greenbook.nafdac.gov.ng.`,chips:[...SPOT,...REPORT_CHIPS]};
+if(kb)return {text:typeof kb.a==="function"?kb.a(q):kb.a,chips:kb.c};
+return {text:"I'm not sure I understood that. I can look up a product or NRN, explain how to spot fakes, explain Active or Expired, or show how to report. What would you like?",chips:START_CHIPS};
 }
 function addMsg(role,text){const d=document.createElement("div");d.className="m "+role;d.textContent=text;$("msgs").appendChild(d);$("msgs").scrollTop=1e6;return d}
-function toggleChat(){const c=$("chat");const open=c.style.display==="flex";c.style.display=open?"none":"flex";if(!open&&!$("msgs").children.length){loadNaf();addMsg("bot","Hi! I'm the ChecknVerify assistant. I only cover fake, counterfeit, banned and unregistered products and services in Nigeria. Ask me how to spot them, check an NRN, or whether a product appears in NAFDAC alerts."+"")}}
-const STOP2=new Set("the and for how can are you not was did why who has had its but any all out get got use used buy bought sell selling look looks looking mean means spot identify verify check checking report reporting nafdac registered registration number numbers batch expiry status active valid legit".split(" "));
-const chatToks=t=>t.toLowerCase().replace(/[^a-z0-9\- ]/g," ").split(/\s+/).filter(x=>x.length>2&&!STOP.has(x)&&!STOP2.has(x));
-async function chatRegistry(t){
-if(!sb)return "";
-const m=t.match(/\b[a-z]?\d{1,2}-\d{3,}\b/i),q=m?m[0]:chatToks(t).slice(0,3).join(" ");
-if(!q)return "";
-const r=await greenbookSearch(q,0);
-if(!r.rows||!r.rows.length)return "";
-return r.rows.slice(0,5).map(x=>`${x.name} | NRN ${x.nrn||"n/a"} | status ${x.status||"unknown"} | ${x.applicant||""}`).join("\n");
+function addChips(list){
+document.querySelectorAll("#msgs .qr").forEach(e=>e.remove());
+if(!list||!list.length)return;
+const d=document.createElement("div");d.className="qr";
+list.forEach(c=>{const o=typeof c==="string"?{label:c}:c,b=document.createElement("button");b.textContent=o.label;b.onclick=()=>{if(o.href){location.hash=o.href;if(innerWidth<700)toggleChat()}else sendChat(o.label)};d.appendChild(b)});
+$("msgs").appendChild(d);$("msgs").scrollTop=1e6;
 }
+function botSay(text,chips){
+const d=addMsg("bot","");
+return new Promise(res=>{
+const done=()=>{d.textContent=text;addChips(chips);$("msgs").scrollTop=1e6;res()};
+if(matchMedia("(prefers-reduced-motion:reduce)").matches||text.length>700){done();return}
+let i=0;const step=Math.max(2,Math.ceil(text.length/90)),iv=setInterval(()=>{i+=step;d.textContent=text.slice(0,i);$("msgs").scrollTop=1e6;if(i>=text.length){clearInterval(iv);done()}},18);
+});
+}
+function toggleChat(){const c=$("chat"),open=c.style.display==="flex";c.style.display=open?"none":"flex";if(!open&&!$("msgs").children.length){loadNaf();botSay("Hi! I'm the ChecknVerify assistant. I only cover fake, counterfeit, banned and unregistered products and services in Nigeria. What would you like to do?",START_CHIPS)}}
 let lastSend=0,sentN=0,aiFails=0;
 async function sendChat(text){
 const t=(text||$("cin").value).trim();if(!t)return;
-if(Date.now()-lastSend<2500){addMsg("bot","Please wait a moment before sending another message.");return}
+if(Date.now()-lastSend<1200){addMsg("bot","One moment please…");return}
 if(sentN>=25){addMsg("bot","You have reached the chat limit for this visit. Please refresh the page, or use the FAQ and Check tabs.");return}
 lastSend=Date.now();sentN++;$("cin").value="";
+document.querySelectorAll("#msgs .qr").forEach(e=>e.remove());
 addMsg("user",t);hist.push({role:"user",content:t.slice(0,500)});
 const ty=document.createElement("div");ty.className="m bot dots";ty.innerHTML="<span></span><span></span><span></span>";$("msgs").appendChild(ty);$("msgs").scrollTop=1e6;
-const hits=findAlerts(t);let reply;
-if(sb&&CFG.aiBot&&aiFails<2){
+const st=parseTalk(t);let q=t,prefix="",out=null;
+if(st.greet||st.name){
+const sub=st.rest.split(/\s+/).filter(w=>w.length>1).length>=2||st.rest.includes("?");
+if(!sub)out={text:greetReply(st),chips:START_CHIPS};
+else{prefix=(st.greet?hello(st.greet):"Nice to meet you")+(userName?" "+userName:"")+"! ";q=st.rest}
+}
+if(!out){const tk=TALK.find(([re])=>re.test(q));if(tk)out={text:tk[1](),chips:START_CHIPS}}
+if(!out){
+const hits=findAlerts(q),cr=await chatRows(q),kb0=bestKB(q);
+const local=!!q.match(NRN_RE)||(kb0&&kb0.k.length>=2&&/^(how|what|where|why|can|should|is|does|do)\b/i.test(q.trim())&&!hits.length&&!cr.rows.length);
+if(sb&&CFG.aiBot&&aiFails<2&&!local){
 try{
-const registry=await chatRegistry(t);
+const registry=cr.rows.slice(0,5).map(x=>`${x.name} | NRN ${x.nrn||"n/a"} | status ${x.status||"unknown"} | ${x.applicant||""}`).join("\n");
 const {data,error}=await sb.functions.invoke("ai-bot",{body:{messages:hist.slice(-8),context:hits.slice(0,5).map(x=>fmt(x.date)+": "+x.title).join("\n"),registry}});
 if(error||!data||!data.reply)throw 0;
-reply=data.reply;aiFails=0;
-}catch(e){aiFails++;reply=localAnswer(t,hits)+(aiFails===1?"\n\n(The AI assistant is busy or unavailable, so this is a basic answer.)":"")}
-}else{await sleep(600);reply=localAnswer(t,hits)}
-ty.remove();addMsg("bot",reply);hist.push({role:"assistant",content:reply.slice(0,500)});
+out={text:data.reply,chips:data.scoped?START_CHIPS:chipsFor(q,hits,cr.rows)};aiFails=0;
+}catch(e){aiFails++;out=localReply(q,hits,cr);if(aiFails===1)out.text+="\n\n(The AI assistant is busy, so this is a basic answer.)"}
+}else{await sleep(500);out=localReply(q,hits,cr)}
+}
+ty.remove();const full=prefix+out.text;
+await botSay(full,out.chips);hist.push({role:"assistant",content:full.slice(0,500)});
 }
 
 /* ---------- reporting (no login) ---------- */
