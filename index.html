@@ -134,6 +134,12 @@ footer{text-align:center;padding:30px 20px 20px;color:var(--mut);font-size:11px;
 .cin{display:flex;gap:8px;padding:10px;border-top:1px solid var(--bd)}.cin input{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--bd);border-radius:999px;padding:10px 14px;outline:none;min-width:0}
 .cin button{border:0;border-radius:50%;width:40px;cursor:pointer;background:var(--neon);color:#0a1200;font-weight:bold}
 .qr{display:flex;flex-wrap:wrap;gap:6px;align-self:flex-start;animation:rise .3s both}.qr button{border:1px solid rgba(180,240,0,.4);background:rgba(180,240,0,.08);color:var(--neon2);border-radius:999px;padding:7px 12px;font-size:12px;cursor:pointer}.qr button:hover{background:rgba(180,240,0,.18)}
+.qlinks{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:24px}
+.qlinks a{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:999px;border:1px solid var(--bd);background:var(--glass);color:var(--tx);text-decoration:none;font-size:13px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.qlinks a:hover{border-color:rgba(180,240,0,.5)}
+.filters{margin-top:12px}.filters .chips{margin:4px 0}
+.flabel{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;margin:10px 0 2px}
+.fsel{width:100%;max-width:430px;padding:10px 12px;border-radius:12px;border:1px solid var(--bd);background:rgba(255,255,255,.06);margin-top:8px;outline:none}
 .cnote{font-size:10px;color:var(--mut);text-align:center;padding:0 10px 8px}
 /* intro splash */
 #splash{position:fixed;inset:0;z-index:999;background:#050505;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .7s ease,visibility .7s;animation:splashout .01s 6s forwards}
@@ -195,21 +201,12 @@ footer{padding:22px 16px 10px}
 <section class="page" id="p-home">
 <div class="container hero">
 <h1>Check before <span class="grad">you buy.</span></h1>
-<p>Search NAFDAC recalls and counterfeit alerts, see a product's NRN and whether its registration is Active, and report suspicious products.</p>
+<p id="homeSub">Search NAFDAC-registered products by name or NRN and see whether they are Active.</p>
 <div class="sbox" id="sbox"><input id="q" placeholder="Search a product or NRN" onkeydown="if(event.key==='Enter')homeSearch()"><button class="sbtn" id="sbtn" onclick="homeSearch()" aria-label="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></div>
 <div class="sugg">Try: <button onclick="trySearch('Peak Milk')">Peak Milk</button><button onclick="trySearch('Augmentin')">Augmentin</button><button onclick="trySearch('Colgate')">Colgate</button></div>
+<div class="qlinks"><a href="#banned">🚫 Banned products</a><a href="#report">⚠️ Report a product</a><a href="#faq">❓ FAQ</a></div>
+<p class="hint" style="margin-top:20px">A product missing from the alerts is not proven genuine. Always check the NRN and that its status is Active.</p>
 </div>
-<main class="container">
-<div class="actions">
-<a class="action" href="#banned"><div class="action-icon">🚫</div><strong>Banned Products</strong><small>Latest NAFDAC alerts</small></a>
-<a class="action" href="#report"><div class="action-icon">⚠️</div><strong>Report a Product</strong><small>No account needed</small></a>
-<a class="action" href="#faq"><div class="action-icon">❓</div><strong>Spot Fakes</strong><small>FAQ and tips</small></a>
-<a class="action" href="https://greenbook.nafdac.gov.ng" target="_blank" rel="noopener"><div class="action-icon">✅</div><strong>NAFDAC Greenbook</strong><small>Official register</small></a>
-</div>
-<div class="notice"><strong>⚠️ Important Safety Notice</strong><br>A product not appearing in the alerts does <strong>not</strong> mean it is genuine. Check the NRN and make sure its status is <strong>Active</strong>, and that the name, manufacturer and strength match your pack.</div>
-<div class="section-title"><h2>Latest NAFDAC alerts</h2><a href="#banned" style="font-size:13px">See all →</a></div>
-<div id="latest" class="list"></div>
-</main>
 </section>
 
 <section class="page" id="p-verify" style="display:none"><main class="container">
@@ -217,7 +214,8 @@ footer{padding:22px 16px 10px}
 <p class="sub">Search by product name, NAFDAC registration number (NRN), active ingredient or manufacturer. Results come from NAFDAC's recalls and alerts and a copy of the NAFDAC Greenbook register.</p>
 <div class="sbox" id="vbox"><input id="vq" placeholder="e.g. milk, Augmentin, A8-102274" onkeydown="if(event.key==='Enter')verifySearch($('vq').value)"><button class="sbtn" id="vbtn" onclick="verifySearch($('vq').value)" aria-label="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></div>
 <div class="sbar" id="vbar"><span class="ring"></span><small>Scanning NAFDAC alerts and registrations…</small></div>
-<p class="hint">For the strongest match, enter the NRN exactly as printed on the pack.</p>
+<div class="filters"><div class="flabel">Search in</div><div class="chips" id="fField"></div><div class="flabel">Status</div><div class="chips" id="fStatus"></div><select id="fCat" class="fsel" onchange="setF('category',this.value)"><option value="">All categories</option></select></div>
+<p class="hint">Tip: type an NRN exactly as printed on the pack, with or without the hyphen.</p>
 <div id="vout"></div>
 </main></section>
 
@@ -389,7 +387,7 @@ setStatus("⚠️ Could not reach NAFDAC from this browser, so this is a "+(src=
 return loading;
 }
 function refreshNaf(){loading=null;loadNaf()}
-function renderAll(){$("latest").innerHTML=items.slice(0,6).map(itemHtml).join("");renderBanned()}
+function renderAll(){renderBanned()}
 function renderBanned(){
 $("chips").innerHTML=["All",...KINDS].map(k=>`<button class="chip ${k===filt?"on":""}" onclick="filt='${k}';shown=20;renderBanned()">${k}</button>`).join("");
 const w=$("bq").value.toLowerCase().split(/\s+/).filter(Boolean);
@@ -399,9 +397,27 @@ $("more").style.display=list.length>shown?"inline-block":"none";
 }
 
 /* ---------- NRN + Status registry (copy of the NAFDAC Greenbook in Supabase) ---------- */
-let regTotal=null;
-async function greenbookSearch(q,off=0){
+let regTotal=null,regStats=null;
+const NEUTRAL={field:"all",status:"all",category:""};
+const mapRow=r=>({id:r.detail_id,name:r.product_name,active:r.active_ingredients,category:r.category,nrn:r.nrn,form:r.form,route:r.roa,strengths:r.strengths,applicant:r.applicant_name,approved:r.approval_date,expiry:r.expiry_date,status:r.status,synced:r.updated_at});
+async function gbStats(){
+if(regStats)return regStats;
+try{const {data,error}=await sb.rpc("greenbook_stats");if(error)throw error;regStats={total:+data[0].total,active:+data[0].active,synced:data[0].synced}}catch(e){regStats=null}
+return regStats;
+}
+async function greenbookSearch(q,off=0,o={}){
 if(!sb)return {off:true};
+const f={...NEUTRAL,...o};
+try{
+const {data,error}=await sb.rpc("search_greenbook",{q,p_field:f.field,p_status:f.status,p_category:f.category,p_limit:20,p_offset:off});
+if(error){if(error.code==="PGRST202"||/search_greenbook/.test(error.message||""))return greenbookLegacy(q,off);throw error}
+const st=await gbStats();
+if(st&&!st.total)return {empty:true};
+return {rows:data.map(mapRow),matches:data.length?+data[0].total_count:0,activeN:data.length?+data[0].active_count:0,total:st?st.total:null};
+}catch(e){return {err:true,msg:e&&e.message}}
+}
+/* fallback used only if schema_search.sql has not been run yet */
+async function greenbookLegacy(q,off){
 try{
 if(regTotal===null){const {count,error}=await sb.from("greenbook_products").select("gb_key",{count:"exact",head:true});if(error)throw error;regTotal=count||0}
 if(!regTotal)return {empty:true};
@@ -410,16 +426,13 @@ let qb=sb.from("greenbook_products").select("detail_id,product_name,active_ingre
 for(const t of toks)qb=qb.or(`product_name.ilike.%${t}%,nrn.ilike.%${t}%,active_ingredients.ilike.%${t}%,strengths.ilike.%${t}%,synonym.ilike.%${t}%,applicant_name.ilike.%${t}%`);
 const {data,error,count}=await qb.order("product_name").range(off,off+19);
 if(error)throw error;
-const act=r=>isActive(r.status)?1:0;
-const rows=data.map(r=>({id:r.detail_id,name:r.product_name,active:r.active_ingredients,category:r.category,nrn:r.nrn,form:r.form,route:r.roa,strengths:r.strengths,applicant:r.applicant_name,approved:r.approval_date,status:r.status,synced:r.updated_at}));
-rows.sort((x,y)=>act(y)-act(x));
-return {rows,matches:count||0,total:regTotal}
+return {rows:data.map(mapRow),matches:count||0,activeN:data.filter(r=>isActive(r.status)).length,total:regTotal};
 }catch(e){return {err:true,msg:e&&e.message}}
 }
 const isActive=s=>/^active$/i.test((s||"").trim());
 function diag(reg){
 const a=src==="live"?`${items.length} live NAFDAC notices`:src==="saved"?`${items.length} saved NAFDAC notices (live feed unreachable)`:`only ${items.length} built-in sample notices (live NAFDAC feed unreachable)`;
-const r=reg.off?"registry not connected":reg.err?"registry error"+(reg.msg?": "+esc(reg.msg):""):reg.empty?"registry copy is EMPTY (run the Greenbook sync)":`registry of ${reg.total.toLocaleString()} products`;
+const r=reg.off?"registry not connected":reg.err?"registry error"+(reg.msg?": "+esc(reg.msg):""):reg.empty?"registry copy is EMPTY (run the Greenbook sync)":`registry${reg.total!=null?" of "+reg.total.toLocaleString()+" products":" connected"}`;
 return `Searched: ${a} · ${r}`;
 }
 function recCard(r,i,from){
@@ -427,29 +440,43 @@ const s=(r.status||"").trim(),cl=!s?"un":isActive(s)?"on":"off";
 const label=!s?"Status unknown":cl==="on"?"Active":"Not active · "+esc(s);
 const f=(k,v)=>v?`<div><small>${k}</small><b>${esc(v)}</b></div>`:"";
 const link=r.id?`<a href="${GB}/products/details/${esc(r.id)}" target="_blank" rel="noopener" style="font-size:12px">Open on Greenbook →</a>`:"";
-return `<div class="rcard" style="--i:${Math.min(Math.max(i-from,0),8)};${i<from?"animation:none":""}"><div class="rtop"><div><h3>${esc(r.name)}</h3><div class="hint" style="margin:0">${esc(r.applicant)}</div></div><span class="st ${cl}"><i></i>${label}</span></div><div class="fields">${f("NAFDAC reg. no.",r.nrn||"not shown")}${f("Category",r.category)}${f("Form",r.form)}${f("Strength",r.strengths)}${f("Active ingredient",r.active)}${f("Route",r.route)}${f("Approved",r.approved)}</div>${link}</div>`;
+return `<div class="rcard" style="--i:${Math.min(Math.max(i-from,0),8)};${i<from?"animation:none":""}"><div class="rtop"><div><h3>${esc(r.name)}</h3><div class="hint" style="margin:0">${esc(r.applicant)}</div></div><span class="st ${cl}"><i></i>${label}</span></div><div class="fields">${f("NAFDAC reg. no.",r.nrn||"not shown")}${f("Category",r.category)}${f("Form",r.form)}${f("Strength",r.strengths)}${f("Active ingredient",r.active)}${f("Route",r.route)}${f("Approved",r.approved)}${f("Expires",r.expiry)}</div>${link}</div>`;
 }
 
 /* ---------- search: home box -> Verify page, animated, with popup for alerts ---------- */
-const vs={q:"",off:0,rows:[],matches:0,hits:[],reg:null};
+const vs={q:"",off:0,rows:[],matches:0,activeN:0,hits:[],reg:null};
+const vf={field:"all",status:"all",category:""};
+const FIELDS=[["all","All"],["product","Product"],["nrn","NRN"],["ingredient","Ingredient"],["manufacturer","Manufacturer"]],STATS=[["all","Any status"],["active","Active"],["inactive","Not active"]];
+const PH={all:"Search a product or NRN",product:"Product name, e.g. Augmentin",nrn:"NRN, e.g. A4-1234",ingredient:"Active ingredient, e.g. paracetamol",manufacturer:"Manufacturer or applicant"};
+function renderFilters(){
+$("fField").innerHTML=FIELDS.map(([k,l])=>`<button class="chip ${vf.field===k?"on":""}" onclick="setF('field','${k}')">${l}</button>`).join("");
+$("fStatus").innerHTML=STATS.map(([k,l])=>`<button class="chip ${vf.status===k?"on":""}" onclick="setF('status','${k}')">${l}</button>`).join("");
+$("vq").placeholder=PH[vf.field];
+}
+function setF(k,v){vf[k]=v;renderFilters();if(vs.q)verifySearch(vs.q,true)}
+async function loadCats(){
+if(!sb||loadCats.done)return;loadCats.done=1;
+try{const {data,error}=await sb.rpc("greenbook_categories");if(error)throw error;
+$("fCat").innerHTML='<option value="">All categories</option>'+data.slice(0,80).map(c=>`<option value="${esc(c.category)}">${esc(c.category)} (${(+c.n).toLocaleString()})</option>`).join("")}catch(e){}
+}
 const hitsFor=q=>{const w=q.toLowerCase().split(/\s+/).filter(Boolean);return items.filter(x=>w.every(s=>x.title.toLowerCase().includes(s)))};
 function trySearch(t){$("q").value=t;homeSearch()}
 function homeSearch(){const q=$("q").value.trim();if(q.length<2)return;location.hash="#verify?q="+encodeURIComponent(q)}
-async function verifySearch(q){
+async function verifySearch(q,quiet){
 q=(q||"").trim();if(q.length<2)return;
 $("vq").value=q;history.replaceState(null,"","#verify?q="+encodeURIComponent(q));
 vs.q=q;$("vout").innerHTML="";
 $("vbox").classList.add("busy");$("vbtn").innerHTML='<span class="spin"></span>';$("vbar").style.display="flex";
 try{
-const [,reg]=await Promise.all([loadNaf(),greenbookSearch(q,0),sleep(900)]);
-Object.assign(vs,{hits:hitsFor(q),reg,rows:reg.rows||[],matches:reg.matches||0});
+const [,reg]=await Promise.all([loadNaf(),greenbookSearch(q,0,vf),sleep(900)]);
+Object.assign(vs,{hits:hitsFor(q),reg,rows:reg.rows||[],matches:reg.matches||0,activeN:reg.activeN||0});
 vs.off=vs.rows.length;
 renderVerify(0);
-if(vs.hits.length)openAlert(vs.hits,q);
+if(vs.hits.length&&!quiet)openAlert(vs.hits,q);
 }finally{$("vbox").classList.remove("busy");$("vbtn").innerHTML=MAG;$("vbar").style.display="none"}
 }
 async function verifyMore(){
-const from=vs.rows.length,reg=await greenbookSearch(vs.q,vs.off);
+const from=vs.rows.length,reg=await greenbookSearch(vs.q,vs.off,vf);
 if(reg.rows){vs.rows=vs.rows.concat(reg.rows);vs.off=vs.rows.length}
 renderVerify(from);
 }
@@ -459,8 +486,8 @@ let msg="";
 if(reg.off)msg=`The registry is not connected yet. Check the NRN on the <a href="${GB}" target="_blank" rel="noopener">NAFDAC Greenbook</a>.`;
 else if(reg.err)msg=`The registry lookup failed${reg.msg?" ("+esc(reg.msg)+")":""}. Check the NRN on the <a href="${GB}" target="_blank" rel="noopener">NAFDAC Greenbook</a>.`;
 else if(reg.empty)msg=`The registry copy in your database is empty. Run the Greenbook sync (ingest-greenbook.mjs).`;
-else if(!vs.matches)msg=`No matching registry record found. <strong>That does not mean it is genuine.</strong> This copy may not include every product, so also search the <a href="${GB}" target="_blank" rel="noopener">Greenbook</a> directly.`;
-let h=`<div class="vmeta">${vs.matches?`<strong>${vs.matches.toLocaleString()} matching record${vs.matches>1?"s":""}</strong> for “${esc(q)}”`:`Results for “${esc(q)}”`}</div>`;
+else if(!vs.matches)msg=`No matching registry record found. <strong>That does not mean it is genuine.</strong> ${vf.field!=="all"||vf.status!=="all"||vf.category?"Try clearing the filters. ":""}This copy may not include every product, so also search the <a href="${GB}" target="_blank" rel="noopener">Greenbook</a> directly.`;
+let h=`<div class="vmeta">${vs.matches?`<strong>${vs.matches.toLocaleString()} matching record${vs.matches>1?"s":""}</strong> for “${esc(q)}” · ${vs.activeN.toLocaleString()} Active`:`Results for “${esc(q)}”`}</div>`;
 if(msg)h+=`<div class="notice" style="margin-top:8px">${msg}</div>`;
 if(vs.hits.length)h+=`<h4 class="sec">NAFDAC alerts (${vs.hits.length})</h4><div class="list">${vs.hits.slice(0,6).map(itemHtml).join("")}</div>`;
 if(rows.length)h+=`<h4 class="sec">Registered products</h4><div class="list one">${rows.map((r,i)=>recCard(r,i,from)).join("")}</div>`;
@@ -482,7 +509,7 @@ window.onclick=e=>{if(e.target.id==="rm")closeModal()};
 
 /* ---------- assistant: greetings, intents, live lookups, quick replies ---------- */
 const hist=[],STOP=new Set("what which where when does have this that with from tell check about there banned fake counterfeit genuine real safe product products please should would could drug medicine alert alerts list listed notice notices recall recalled recalls mentioned know show find into been being under over".split(" "));
-const STOP2=new Set("the and for how can are you not was did why who has had its but any all out get got use used buy bought sell selling look looks looking mean means spot identify verify check checking report reporting nafdac registered registration number numbers batch expiry status active valid legit".split(" "));
+const STOP2=new Set("the and for how can are you not was did why who has had its but any all out get got use used buy bought sell selling look looks looking mean means spot identify verify check checking report reporting nafdac registered registration number numbers batch expiry expire expires expired expiring expiration date status active valid legit make makes made manufacturer manufacturers company companies produce produces brand name names".split(" "));
 const NAME_STOP=new Set("looking trying not sure new worried confused buying selling here there fine good great okay just also still really very interested concerned afraid scared unsure curious wondering asking checking reporting".split(" "));
 const chatToks=t=>t.toLowerCase().replace(/[^a-z0-9\- ]/g," ").split(/\s+/).filter(x=>x.length>2&&!STOP.has(x)&&!STOP2.has(x));
 const NRN_RE=/\b[a-z]?\d{1,2}-\d{3,}\b/i;
@@ -521,6 +548,7 @@ K([/check|verify|look ?up|search/i,/product|something|item/i],"Sure. Type the pr
 K([/spot|identify|detect|tell|recogni|know if|how (can|do) i know|signs/i,/fake|counterfeit|original|genuine|authentic/i],"To spot a fake: 1) find the NRN on the pack and look it up, and make sure the status is Active; 2) check the name, manufacturer and strength match; 3) inspect printing, seals, batch and expiry; 4) compare with a genuine pack; 5) buy from licensed outlets. A real NRN can be copied onto a fake pack, so step 2 matters.",[...NRNQ,...REPORT_CHIPS]),
 K([/what('?s| is)|meaning|stands/i,/\bnrn\b|nafdac (reg|number|no)/i],"NRN is the NAFDAC Registration Number printed on registered products. Looking it up shows the product name, manufacturer, strength and whether the registration is Active.",[...NRNQ,"What does Active mean?"]),
 K([/verify|check|confirm|look ?up|search|validate/i,/nrn|nafdac|registration|number|greenbook/i],"Type the NRN or product name in the search box on the Home or Check tab, or right here in the chat, and I'll show matching records with their status. For the official record, confirm on greenbook.nafdac.gov.ng.",["What does Active mean?",...SPOT]),
+K([/expir|expiry|valid until|renew|how long/i,/nrn|regist|nafdac|product/i],"The Check tab shows each registration's status and, when the register provides one, its expiry date. A registration's expiry is different from the expiry date printed on the pack, so always check the pack's date too and be wary of re-stamped dates.",[...NRNQ]),
 K([/\b(active|expired|inactive)\b/i,/mean|status|regist|nrn|valid|what/i],"Active means the registration is currently valid. Anything else, such as Expired, means it isn't currently active, so ask the seller why and check with NAFDAC. Even Active doesn't prove your pack is genuine.",[...SPOT,...REPORT_CHIPS]),
 K([/report|complain|call|contact|hotline|email|phone|reach/i,/nafdac|fake|counterfeit|product|seller|pharmacy|suspicious/i],"Keep the product, packaging and receipt and take photos, then use the Report tab. Also tell NAFDAC: call 0800-1-NAFDAC (0800-1-623322), email sf.alert@nafdac.gov.ng, or use the NAFDAC Med Safety app. If you feel unwell, get medical care first.",[{label:"Open Report tab",href:"#report"},...SPOT]),
 K([/bought|purchased|took|taking|used|using|consumed|ate|drank|gave/i,/fake|counterfeit|expired|bad|suspicious|substandard/i],"Stop using it, and get medical care straight away if you feel unwell. Keep the product, packaging and receipt, take photos, and report it on the Report tab and to NAFDAC (0800-1-NAFDAC).",[{label:"Open Report tab",href:"#report"}]),
@@ -541,10 +569,10 @@ if(!sb)return {rows:[],off:true};
 const m=q.match(NRN_RE),s=m?m[0]:chatToks(q).slice(0,3).join(" ");
 if(!s)return {rows:[]};
 const r=await greenbookSearch(s,0);
-return {rows:r.rows||[],err:r.err,empty:r.empty};
+return {rows:(r.rows||[]).slice(0,10),matches:r.matches||0,activeN:r.activeN||0,err:r.err,empty:r.empty};
 }
 const searchQ=q=>{const m=q.match(NRN_RE);return m?m[0]:chatToks(q).slice(0,3).join(" ")||q};
-const rowLine=r=>`• ${r.name}: NRN ${r.nrn||"n/a"}, ${r.status||"status unknown"}${r.applicant?" ("+r.applicant+")":""}`;
+const rowLine=r=>`• ${r.name}: NRN ${r.nrn||"n/a"}, ${r.status||"status unknown"}${r.expiry?", expires "+r.expiry:""}${r.applicant?" ("+r.applicant+")":""}`;
 function chipsFor(q,hits,rows){return hits.length||rows.length?[{label:"Open full results",href:"#verify?q="+encodeURIComponent(searchQ(q))},...REPORT_CHIPS]:[...SPOT,...NRNQ]}
 function localReply(q,hits,cr){
 const rows=cr.rows,nrn=q.match(NRN_RE),kb=bestKB(q),toks=chatToks(q);
@@ -556,7 +584,7 @@ if(kb&&kb.k.length>=2&&/^(how|what|where|why|can|should)\b/i.test(q.trim()))retu
 if(hits.length||rows.length){
 const parts=[];
 if(hits.length)parts.push(`NAFDAC notices that mention your search (${hits.length}):\n`+hits.slice(0,3).map(x=>`• ${fmt(x.date)}: ${x.title} [${kind(x.title)}]`).join("\n")+"\nNotices often cover specific batches or look-alike products only, so read the notice before concluding.");
-if(rows.length)parts.push(`Register records (${rows.length>=5?"5+":rows.length}):\n`+rows.slice(0,3).map(rowLine).join("\n")+"\nAn Active record does not prove your pack is genuine. Match name, manufacturer, strength and batch.");
+if(rows.length)parts.push(`Greenbook records for “${searchQ(q)}”: ${cr.matches||rows.length} found${cr.matches?` (${cr.activeN} Active)`:""}. Top matches:\n`+rows.slice(0,3).map(rowLine).join("\n")+"\nAn Active record does not prove your pack is genuine. Match name, manufacturer, strength and batch.");
 return {text:parts.join("\n\n"),chips:chipsFor(q,hits,rows)};
 }
 if(toks.length&&(VERDICT.test(q)||q.trim().split(/\s+/).length<=4&&!kb))
@@ -602,7 +630,7 @@ const hits=findAlerts(q),cr=await chatRows(q),kb0=bestKB(q);
 const local=!!q.match(NRN_RE)||(kb0&&kb0.k.length>=2&&/^(how|what|where|why|can|should|is|does|do)\b/i.test(q.trim())&&!hits.length&&!cr.rows.length);
 if(sb&&CFG.aiBot&&aiFails<2&&!local){
 try{
-const registry=cr.rows.slice(0,5).map(x=>`${x.name} | NRN ${x.nrn||"n/a"} | status ${x.status||"unknown"} | ${x.applicant||""}`).join("\n");
+const registry=(cr.matches?`TOTAL_MATCHES ${cr.matches} (${cr.activeN} active)\n`:"")+cr.rows.slice(0,5).map(x=>`${x.name} | NRN ${x.nrn||"n/a"} | status ${x.status||"unknown"} | expiry ${x.expiry||"not shown"} | ${x.applicant||""}`).join("\n");
 const {data,error}=await sb.functions.invoke("ai-bot",{body:{messages:hist.slice(-8),context:hits.slice(0,5).map(x=>fmt(x.date)+": "+x.title).join("\n"),registry}});
 if(error||!data||!data.reply)throw 0;
 out={text:data.reply,chips:data.scoped?START_CHIPS:chipsFor(q,hits,cr.rows)};aiFails=0;
@@ -649,9 +677,11 @@ function route(){
 const [h,qs]=(location.hash||"#home").slice(1).split("?"),p=PAGES.includes(h)?h:"home";
 PAGES.forEach(x=>{$("p-"+x).style.display=x===p?"block":"none";document.querySelector(`.tab[data-p="${x}"]`).classList.toggle("on",x===p)});
 window.scrollTo(0,0);
-if(p==="verify"){const q=new URLSearchParams(qs||"").get("q");if(q&&q!==vs.q){verifySearch(q)}}
+if(p==="verify"){loadCats();const q=new URLSearchParams(qs||"").get("q");if(q&&q!==vs.q){verifySearch(q)}}
 }
 window.addEventListener("hashchange",route);
+renderFilters();
+gbStats&&sb&&gbStats().then(st=>{if(st&&st.total)$("homeSub").textContent=`Search ${st.total.toLocaleString()} NAFDAC-registered products by name or NRN and see whether they are Active.`});
 function endSplash(){const sp=$("splash");if(!sp||sp.classList.contains("hide"))return;sp.classList.add("hide");document.body.classList.remove("loading");setTimeout(()=>sp.remove(),800)}
 (function(){const c=$("logoSvg").cloneNode(true);c.removeAttribute("id");c.querySelectorAll("[id]").forEach(e=>e.id+="2");c.innerHTML=c.innerHTML.replace(/#lg\b/g,"#lg2");$("spLogo").appendChild(c);setTimeout(endSplash,matchMedia("(prefers-reduced-motion:reduce)").matches?600:3000)})();
 route();loadNaf();
