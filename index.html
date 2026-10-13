@@ -35,6 +35,7 @@ nav{display:flex;gap:2px;padding:4px;border-radius:999px;background:var(--glass)
 .hero{padding:34px 0 8px}
 .hero h1{font-size:clamp(28px,8vw,40px);line-height:1.08;margin-bottom:10px;font-weight:700}
 .hero p{font-size:14px;color:var(--mut);max-width:520px;line-height:1.55}
+.hero{text-align:center}.hero p,.hero .sbox{margin-left:auto;margin-right:auto}.hero .sugg{justify-content:center}
 .sbox{position:relative;isolation:isolate;margin-top:22px;width:min(100%,430px);display:flex;align-items:center;padding:6px 6px 6px 0;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 10px 30px rgba(0,0,0,.5)}
 .sbox::after{content:"+";position:absolute;left:18px;top:50%;transform:translateY(-54%);color:var(--neon);font-size:28px;font-weight:300;line-height:1;text-shadow:0 0 10px var(--neon)}
 .sbox::before{content:"";position:absolute;z-index:-1;left:44px;top:-6px;bottom:-6px;width:58%;border-radius:50%;background:radial-gradient(ellipse at 30% 50%,rgba(180,240,0,.7),rgba(180,240,0,.18) 45%,transparent 72%);filter:blur(16px);opacity:.28;transition:opacity .3s}
@@ -318,20 +319,20 @@ A product not listed as an alert is not automatically certified as genuine.
 <div class="msgs" id="msgs"></div>
 <div class="cq"><button onclick="sendChat('How do I spot fake medicine?')">Spot fake medicine</button><button onclick="sendChat('How do I verify an NRN?')">Verify an NRN</button><button onclick="sendChat('How do I report a fake product?')">Report a fake</button></div>
 <div class="cin"><input id="cin" placeholder="Ask a question…" maxlength="500" onkeydown="if(event.key==='Enter')sendChat()"><button onclick="sendChat()">➤</button></div>
-<div class="cnote">Answers can be wrong and are not medical advice. Verify with NAFDAC.</div>
+<div class="cnote">Answers can be wrong and are not medical advice. Please do not share personal details. Verify with NAFDAC.</div>
 </div>
 
 <script>
 /* CONFIG: Supabase URL + anon key enable (1) saving reports, (2) the NRN/Status lookup (table greenbook_products, filled by ingest-greenbook.mjs),
    (3) the AI assistant (edge function "ai-bot"). Leave blank for local demo mode.
    nafdacProxy: optional JSON URL [{date,title,link}] if browsers are blocked from NAFDAC's alerts page. */
-const CFG={supabaseUrl:"https://ginxwjvjhqfgxxymfacj.supabase.co",supabaseAnonKey:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdpbnh3anZqaHFmZ3h4eW1mYWNqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MDc2MDc3NSwiZXhwIjoyMTA2MzM2Nzc1fQ.cjeey7QoCJiwMOYQW6n3dO5hd7jlCQ-NqYmD7p6r43o",nafdacProxy:"",aiBot:false}; /* aiBot: set true only after deploying the ai-bot function with an Anthropic API key (paid) */
+const CFG={supabaseUrl:"",supabaseAnonKey:"",nafdacProxy:"",aiBot:true}; /* aiBot: uses the "ai-bot" edge function (Google Gemini). If it is not deployed or is busy, the chat falls back to built-in answers. */
 const sb=(CFG.supabaseUrl&&CFG.supabaseAnonKey&&window.supabase)?window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey):null;
 const $=id=>document.getElementById(id);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const MAG='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
-const NAF="https://nafdac.gov.ng",GB="https://greenbook.nafdac.gov.ng/?draw=1&columns%5B0%5D%5Bdata%5D=product_name&columns%5B0%5D%5Bname%5D=product_name&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=true&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=ingredient.ingredient_name&columns%5B1%5D%5Bname%5D=ingredient.ingredient_name&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=true&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=product_category.name&columns%5B2%5D%5Bname%5D=product_category.name&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=product_category_id&columns%5B3%5D%5Bname%5D=product_category_id&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=true&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=ingredient.synonym&columns%5B4%5D%5Bname%5D=ingredient.synonym&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=true&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=NAFDAC&columns%5B5%5D%5Bname%5D=NAFDAC&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=true&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=form.name&columns%5B6%5D%5Bname%5D=form.name&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=true&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=route.name&columns%5B7%5D%5Bname%5D=route.name&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=true&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B8%5D%5Bdata%5D=strength&columns%5B8%5D%5Bname%5D=strength&columns%5B8%5D%5Bsearchable%5D=true&columns%5B8%5D%5Borderable%5D=true&columns%5B8%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B8%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B9%5D%5Bdata%5D=applicant.name&columns%5B9%5D%5Bname%5D=applicant.name&columns%5B9%5D%5Bsearchable%5D=true&columns%5B9%5D%5Borderable%5D=true&columns%5B9%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B9%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B10%5D%5Bdata%5D=approval_date&columns%5B10%5D%5Bname%5D=approval_date&columns%5B10%5D%5Bsearchable%5D=true&columns%5B10%5D%5Borderable%5D=true&columns%5B10%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B10%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B11%5D%5Bdata%5D=status&columns%5B11%5D%5Bname%5D=status&columns%5B11%5D%5Bsearchable%5D=true&columns%5B11%5D%5Borderable%5D=true&columns%5B11%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B11%5D%5Bsearch%5D%5Bregex%5D=false&order%5B0%5D%5Bcolumn%5D=0&order%5B0%5D%5Bdir%5D=asc&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&search_ingredient=&_=1791362652529";
+const NAF="https://nafdac.gov.ng",GB="https://greenbook.nafdac.gov.ng";
 $("fav").href="data:image/svg+xml,"+encodeURIComponent($("logoSvg").outerHTML);
 
 /* Built-in snapshot (newest notices seen 5 Oct 2026), used only if the live load fails and nothing is saved */
@@ -492,17 +493,37 @@ function findAlerts(t){const w=t.toLowerCase().replace(/[^a-z0-9 ]/g," ").split(
 function localAnswer(t,hits){
 if(hits.length)return `I found ${hits.length} NAFDAC notice(s) that match:\n`+hits.slice(0,3).map(x=>`• ${fmt(x.date)}: ${x.title}`).join("\n")+"\n\nOpen the Banned Products tab for the official links. Not every pack of a brand is affected, so check batch numbers in the notice.";
 const k=KB.find(([re])=>re.test(t));
-return k?k[1]:"I can help with spotting fake products, checking an NRN, and reporting. Try asking about a product name, e.g. “Is Peak Milk in the alerts?”. For anything urgent, call NAFDAC on 0800-1-NAFDAC (0800-1-623322).";
+return k?k[1]:"I can only help with fake, counterfeit, banned and unregistered products and services: spotting them, checking an NRN, NAFDAC alerts and reporting. Try a product name, e.g. “Is Peak Milk in the alerts?”. For anything urgent, call NAFDAC on 0800-1-NAFDAC (0800-1-623322).";
 }
 function addMsg(role,text){const d=document.createElement("div");d.className="m "+role;d.textContent=text;$("msgs").appendChild(d);$("msgs").scrollTop=1e6;return d}
-function toggleChat(){const c=$("chat");const open=c.style.display==="flex";c.style.display=open?"none":"flex";if(!open&&!$("msgs").children.length){loadNaf();addMsg("bot","Hi! I'm the ChecknVerify assistant. Ask me how to spot fake products, verify an NRN, or whether a product appears in NAFDAC alerts."+"")}}
+function toggleChat(){const c=$("chat");const open=c.style.display==="flex";c.style.display=open?"none":"flex";if(!open&&!$("msgs").children.length){loadNaf();addMsg("bot","Hi! I'm the ChecknVerify assistant. I only cover fake, counterfeit, banned and unregistered products and services in Nigeria. Ask me how to spot them, check an NRN, or whether a product appears in NAFDAC alerts."+"")}}
+const STOP2=new Set("the and for how can are you not was did why who has had its but any all out get got use used buy bought sell selling look looks looking mean means spot identify verify check checking report reporting nafdac registered registration number numbers batch expiry status active valid legit".split(" "));
+const chatToks=t=>t.toLowerCase().replace(/[^a-z0-9\- ]/g," ").split(/\s+/).filter(x=>x.length>2&&!STOP.has(x)&&!STOP2.has(x));
+async function chatRegistry(t){
+if(!sb)return "";
+const m=t.match(/\b[a-z]?\d{1,2}-\d{3,}\b/i),q=m?m[0]:chatToks(t).slice(0,3).join(" ");
+if(!q)return "";
+const r=await greenbookSearch(q,0);
+if(!r.rows||!r.rows.length)return "";
+return r.rows.slice(0,5).map(x=>`${x.name} | NRN ${x.nrn||"n/a"} | status ${x.status||"unknown"} | ${x.applicant||""}`).join("\n");
+}
+let lastSend=0,sentN=0,aiFails=0;
 async function sendChat(text){
-const t=(text||$("cin").value).trim();if(!t)return;$("cin").value="";
+const t=(text||$("cin").value).trim();if(!t)return;
+if(Date.now()-lastSend<2500){addMsg("bot","Please wait a moment before sending another message.");return}
+if(sentN>=25){addMsg("bot","You have reached the chat limit for this visit. Please refresh the page, or use the FAQ and Check tabs.");return}
+lastSend=Date.now();sentN++;$("cin").value="";
 addMsg("user",t);hist.push({role:"user",content:t.slice(0,500)});
 const ty=document.createElement("div");ty.className="m bot dots";ty.innerHTML="<span></span><span></span><span></span>";$("msgs").appendChild(ty);$("msgs").scrollTop=1e6;
 const hits=findAlerts(t);let reply;
-if(sb&&CFG.aiBot){try{const {data,error}=await sb.functions.invoke("ai-bot",{body:{messages:hist.slice(-8),context:hits.slice(0,5).map(x=>fmt(x.date)+": "+x.title).join("\n")}});if(error||!data||!data.reply)throw 0;reply=data.reply}catch(e){reply=localAnswer(t,hits)+"\n\n(The AI service is unavailable, so this is a basic answer.)"}}
-else{await sleep(600);reply=localAnswer(t,hits)}
+if(sb&&CFG.aiBot&&aiFails<2){
+try{
+const registry=await chatRegistry(t);
+const {data,error}=await sb.functions.invoke("ai-bot",{body:{messages:hist.slice(-8),context:hits.slice(0,5).map(x=>fmt(x.date)+": "+x.title).join("\n"),registry}});
+if(error||!data||!data.reply)throw 0;
+reply=data.reply;aiFails=0;
+}catch(e){aiFails++;reply=localAnswer(t,hits)+(aiFails===1?"\n\n(The AI assistant is busy or unavailable, so this is a basic answer.)":"")}
+}else{await sleep(600);reply=localAnswer(t,hits)}
 ty.remove();addMsg("bot",reply);hist.push({role:"assistant",content:reply.slice(0,500)});
 }
 
