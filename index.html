@@ -326,7 +326,7 @@ A product not listed as an alert is not automatically certified as genuine.
 /* CONFIG: Supabase URL + anon key enable (1) saving reports, (2) the NRN/Status lookup (table greenbook_products, filled by ingest-greenbook.mjs),
    (3) the AI assistant (edge function "ai-bot"). Leave blank for local demo mode.
    nafdacProxy: optional JSON URL [{date,title,link}] if browsers are blocked from NAFDAC's alerts page. */
-const CFG={supabaseUrl:"",supabaseAnonKey:"",nafdacProxy:"",aiBot:true}; /* aiBot: uses the "ai-bot" edge function (Google Gemini). If it is not deployed or is busy, the chat falls back to built-in answers. */
+const CFG={supabaseUrl:"https://ginxwjvjhqfgxxymfacj.supabase.co",supabaseAnonKey:"sb_publishable_Ze_PwXO6hDSHLyzt397feg_lWJ_Y8c0",nafdacProxy:"",aiBot:true}; /* aiBot: uses the "ai-bot" edge function (Google Gemini). If it is not deployed or is busy, the chat falls back to built-in answers. */
 const sb=(CFG.supabaseUrl&&CFG.supabaseAnonKey&&window.supabase)?window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey):null;
 const $=id=>document.getElementById(id);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
