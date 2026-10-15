@@ -184,6 +184,22 @@ footer{padding:22px 16px 10px}
 @media(min-width:700px){.actions{grid-template-columns:repeat(4,1fr)}.list{grid-template-columns:1fr 1fr}.list.one{grid-template-columns:1fr}.row{grid-template-columns:1fr 1fr}}
 
 html[data-theme="orange"]::before{content:"";position:fixed;z-index:-1;left:-30vmax;top:-30vmax;width:80vmax;height:80vmax;border-radius:50%;pointer-events:none;background:radial-gradient(circle,var(--haze2),transparent 60%);animation:haze 22s ease-in-out infinite alternate-reverse}
+
+html[data-theme="sand"]{--fg:58,44,36;--panel:250,246,240;--hdr:240,233,224;--sh:90,70,55;--ac:197,138,99;--neon:#b9794f;--neon2:#8f4f2b;--on-ac:#2a1608;--tx:#3a2f28;--tx2:#5c4e44;--mut:#74655a;--bg0:#efe7dc;--bgfill:linear-gradient(180deg,#c9beb2 0%,#e2d9ce 42%,#f1ebe2 100%);--dotA:0;--haze:rgba(255,236,215,.55);--haze2:transparent;--ok-t:#2f7d4f;--ok-rgb:47,125,79;--ovl:rgba(58,44,36,.45);--cf-t:#b3342f;--rc-t:#a4560f;--su-t:#7d6400;--sa-t:#4a5fb8}
+html[data-theme="sand"] body{background-attachment:fixed}
+html[data-theme="sand"]{--glass:rgba(255,255,255,.5);--bd:rgba(120,95,75,.22)}
+/* sand-glass background scene (CSS only) */
+#bgart{display:none;position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+html[data-theme="sand"] #bgart{display:block}
+#bgart .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(120,100,85,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(120,100,85,.07) 1px,transparent 1px);background-size:76px 76px;-webkit-mask-image:linear-gradient(#000,transparent 70%);mask-image:linear-gradient(#000,transparent 70%)}
+#bgart .floor{position:absolute;left:-10%;right:-10%;bottom:-22vh;height:58vh;background:radial-gradient(ellipse at 50% 0,rgba(255,251,245,.95),rgba(255,251,245,0) 70%)}
+#bgart .gp{position:absolute;width:var(--w);height:var(--h);left:var(--x);top:var(--y);border-radius:26px;background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(255,255,255,.16));border:1px solid rgba(255,255,255,.7);box-shadow:0 30px 60px rgba(120,95,75,.18),inset 0 1px 0 rgba(255,255,255,.9);transform:rotate(var(--r)) skewX(var(--k));animation:gfloat var(--d) ease-in-out infinite alternate;overflow:hidden}
+#bgart .gp svg{position:absolute;inset:0;width:100%;height:100%}
+#bgart .gp.stone{background:radial-gradient(rgba(120,98,82,.38) 1.2px,transparent 2.2px) 0 0/9px 9px,linear-gradient(145deg,#eadfd2,#d4c5b5)}
+#bgart .sph{position:absolute;left:var(--x);top:var(--y);width:var(--s);height:var(--s);border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff3e8,#f1c7a8 45%,#d79c78 80%,#c4875f);box-shadow:0 30px 50px rgba(150,105,75,.28);animation:gfloat var(--d) ease-in-out infinite alternate}
+#bgart .leaf{position:absolute;right:-4vmin;bottom:6vh;width:30vmin;height:34vmin;opacity:.55}
+@keyframes gfloat{to{transform:translateY(-18px) rotate(calc(var(--r,0deg) + 3deg)) skewX(var(--k,0deg))}}
+@media(max-width:699px){#bgart .gp.hide-m{display:none}#bgart .gp{border-radius:20px}}
 .themebox{position:relative}
 .themebtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--bd);background:var(--glass);cursor:pointer;font-size:17px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .tmenu{display:none;position:absolute;right:0;top:46px;min-width:176px;background:rgba(var(--panel),.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--bd);border-radius:16px;padding:8px;box-shadow:0 18px 40px rgba(var(--sh),.35);z-index:70}
@@ -212,6 +228,20 @@ html[data-theme="orange"]::before{content:"";position:fixed;z-index:-1;left:-30v
 </style>
 </head>
 <body class="loading">
+<div id="bgart" aria-hidden="true">
+<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6dcc6"/><stop offset=".5" stop-color="#c98e6c"/><stop offset="1" stop-color="#f4d6bf"/></linearGradient></defs></svg>
+<div class="grid"></div>
+<div class="gp" style="--w:26vw;--h:30vh;--x:4vw;--y:16vh;--r:-16deg;--k:-10deg;--d:15s"><svg viewBox="0 0 200 120" preserveAspectRatio="none"><path d="M0 104C54 62 108 112 200 26" fill="none" stroke="url(#rg)" stroke-width="3.5"/></svg></div>
+<div class="gp hide-m" style="--w:22vw;--h:24vh;--x:62vw;--y:9vh;--r:12deg;--k:12deg;--d:18s"><svg viewBox="0 0 200 120" preserveAspectRatio="none"><path d="M0 40C60 20 120 100 200 70" fill="none" stroke="url(#rg)" stroke-width="3.5"/></svg></div>
+<div class="gp stone hide-m" style="--w:24vw;--h:26vh;--x:12vw;--y:58vh;--r:-12deg;--k:8deg;--d:20s"><svg viewBox="0 0 200 120" preserveAspectRatio="none"><path d="M0 78C70 60 120 110 200 50" fill="none" stroke="url(#rg)" stroke-width="3"/></svg></div>
+<div class="gp" style="--w:24vw;--h:36vh;--x:66vw;--y:46vh;--r:-10deg;--k:-8deg;--d:17s"><svg viewBox="0 0 200 120" preserveAspectRatio="none"><path d="M0 110C60 70 130 90 200 10" fill="none" stroke="url(#rg)" stroke-width="3.5"/></svg></div>
+<div class="sph" style="--x:19vw;--y:12vh;--s:6vmin;--d:13s"></div>
+<div class="sph" style="--x:84vw;--y:60vh;--s:15vmin;--d:19s"></div>
+<div class="sph" style="--x:-4vw;--y:78vh;--s:20vmin;--d:22s"></div>
+<svg class="leaf" viewBox="0 0 120 140"><g fill="#7f9a72"><path d="M60 140C50 90 40 50 70 6 98 46 84 96 60 140Z"/><path d="M60 140C26 110 8 76 14 38 52 54 66 96 60 140Z" opacity=".8"/><path d="M60 140C92 118 112 90 110 52 76 62 56 98 60 140Z" opacity=".7"/></g></svg>
+<div class="floor"></div>
+</div>
+
 <div id="splash" onclick="endSplash()"><div class="sp-core"><div class="sp-ring"></div><div class="sp-ring r2"></div><div id="spLogo"></div></div><div class="sp-wm">Checkn<span>Verify</span></div><div class="sp-tag">Check before you buy</div><div class="sp-bar"><i></i></div></div>
 <header><div class="container hd">
 <div class="brand">
@@ -230,7 +260,8 @@ html[data-theme="orange"]::before{content:"";position:fixed;z-index:-1;left:-30v
 <div class="tmenu" id="themeMenu"><div class="tl">Theme</div>
 <button data-t="dark" onclick="applyTheme('dark')"><i style="background:#b4f000"></i>Neon dark</button>
 <button data-t="white" onclick="applyTheme('white')"><i style="background:#ffffff"></i>White</button>
-<button data-t="orange" onclick="applyTheme('orange')"><i style="background:#ff7a1a"></i>Orange glass</button></div></div>
+<button data-t="orange" onclick="applyTheme('orange')"><i style="background:#ff7a1a"></i>Orange glass</button>
+<button data-t="sand" onclick="applyTheme('sand')"><i style="background:#cdbfae"></i>Sand glass</button></div></div>
 </div></header>
 
 <section class="page" id="p-home">
@@ -762,7 +793,7 @@ if(t==="reg"){vf.status=v;vf.field="all";vf.category="";$("fCat").value="";rende
 else{filt=v;shown=20;$("bq").value="";location.hash="#banned";renderBanned()}
 }
 /* ---------- themes ---------- */
-const THEMES={dark:{meta:"#050505",a:["#d6ff5a","#9bd400","#b4f000"]},white:{meta:"#ffffff",a:["#ff9a3c","#e8590c","#ff8a1f"]},orange:{meta:"#eceef2",a:["#ff9a3c","#e8590c","#ff8a1f"]}};
+const THEMES={dark:{meta:"#050505",a:["#d6ff5a","#9bd400","#b4f000"]},white:{meta:"#ffffff",a:["#ff9a3c","#e8590c","#ff8a1f"]},orange:{meta:"#eceef2",a:["#ff9a3c","#e8590c","#ff8a1f"]},sand:{meta:"#e2d9ce",a:["#d9a07a","#b9794f","#c58a63"]}};
 function applyTheme(t,keep){
 if(!THEMES[t])t="white";
 document.documentElement.dataset.theme=t;if(keep!==false){try{localStorage.setItem("cnvTheme2",t)}catch(e){}}
