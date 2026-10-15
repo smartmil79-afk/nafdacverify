@@ -1,381 +1,267 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
-<title>ChecknVerify | Product Safety</title>
-<script>try{document.documentElement.dataset.theme=localStorage.getItem("cnvTheme2")||"white"}catch(e){document.documentElement.dataset.theme="white"}</script>
+<meta name="theme-color" content="#fbfaf8">
+<meta name="description" content="Check NAFDAC-registered products, recalls and counterfeit alerts in Nigeria, and report suspicious products.">
+<title>ChecknVerify | Check before you buy</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("cnvTheme3")||"light"}catch(e){}</script>
 <link rel="icon" id="fav">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
- html[data-theme="dark"]{--fg:255,255,255;--panel:18,18,20;--hdr:5,5,5;--sh:0,0,0;--ac:180,240,0;--neon:#b4f000;--neon2:#d6ff5a;--on-ac:#0a1200;--tx:#f1f2f4;--tx2:#c9ccd2;--mut:#9aa0a8;--bg0:#050505;--bgfill:#050505;--dotA:.22;--haze:rgba(150,160,185,.24);--haze2:transparent;--ok-t:#d6ff5a;--ok-rgb:180,240,0;--ovl:rgba(0,0,0,.7);--cf-t:#ff8a8c;--rc-t:#ffc46b;--su-t:#ffe27a;--sa-t:#a9c0ff;--bd:rgba(var(--fg),.12);--glass:rgba(var(--fg),.06)}
-:root,html[data-theme="white"]{--fg:20,24,32;--panel:255,255,255;--hdr:255,255,255;--sh:40,48,64;--ac:240,106,0;--neon:#f06a00;--neon2:#c2410c;--on-ac:#1c0a00;--tx:#1c2030;--tx2:#434a58;--mut:#667085;--bg0:#ffffff;--bgfill:linear-gradient(160deg,#ffffff,#f1f3f6);--dotA:.07;--haze:rgba(0,0,0,0);--haze2:transparent;--ok-t:#15803d;--ok-rgb:34,197,94;--ovl:rgba(30,34,44,.45);--cf-t:#c62828;--rc-t:#b45309;--su-t:#8a6d00;--sa-t:#3b5bdb}
-html[data-theme="orange"]{--fg:20,24,32;--panel:255,255,255;--hdr:255,255,255;--sh:40,48,64;--ac:240,106,0;--neon:#f06a00;--neon2:#c2410c;--on-ac:#1c0a00;--tx:#1c2030;--tx2:#434a58;--mut:#667085;--bg0:#f4f5f7;--bgfill:linear-gradient(160deg,#ffffff,#eceef2 55%,#dfe2e8);--dotA:.05;--haze:rgba(255,128,32,.42);--haze2:rgba(255,176,102,.5);--ok-t:#15803d;--ok-rgb:34,197,94;--ovl:rgba(30,34,44,.45);--cf-t:#c62828;--rc-t:#b45309;--su-t:#8a6d00;--sa-t:#3b5bdb}
+:root{--bgrgb:251,250,248;--bg:#fbfaf8;--surface:#fff;--surface2:#f3f1ed;--tx:#1b1b1f;--tx2:#4b5060;--mut:#6b7080;--line:#e8e5df;--brand:#e5590b;--brand-soft:#fff0e6;--on-brand:#fff;--glow:rgba(229,89,11,.14);--glow2:rgba(229,89,11,.16);--ok:#15803d;--ok-bg:#e8f6ee;--bad:#c62828;--bad-bg:#fdecec;--warn:#a85a09;--warn-bg:#fff3df;--info:#3b5bdb;--info-bg:#eaeefc;--shadow:0 1px 2px rgba(20,20,30,.05),0 8px 24px rgba(20,20,30,.05);--r:16px}
+html[data-theme="dark"]{--bgrgb:14,15,18;--bg:#0e0f12;--surface:#16181d;--surface2:#1d2026;--tx:#f2f3f5;--tx2:#c4c8d0;--mut:#9399a5;--line:#2a2e36;--brand:#ff7a2f;--brand-soft:#2a1a10;--on-brand:#1a0c02;--glow:rgba(255,122,47,.16);--glow2:rgba(255,122,47,.22);--ok:#4ade80;--ok-bg:#12281b;--bad:#ff8a8a;--bad-bg:#2d1517;--warn:#fbbf24;--warn-bg:#2b2210;--info:#8ea2ff;--info-bg:#1a1f3a;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35)}
 *{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
-body{font-family:"Segoe UI",Arial,sans-serif;color:var(--tx);min-height:100vh;background:var(--bgfill);overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth;scroll-padding-top:80px;-webkit-text-size-adjust:100%}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--tx);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 body.loading{overflow:hidden}
-body::before{content:"";position:fixed;inset:-16px;z-index:-1;pointer-events:none;background-image:radial-gradient(rgba(var(--fg),var(--dotA)) 1.1px,transparent 1.6px);background-size:8px 8px;-webkit-mask-image:radial-gradient(ellipse at 85% 45%,#000 0,rgba(var(--sh),.35) 45%,transparent 80%);mask-image:radial-gradient(ellipse at 85% 45%,#000 0,rgba(var(--sh),.35) 45%,transparent 80%);animation:grid 6s linear infinite}
-body::after{content:"";position:fixed;z-index:-1;right:-25vmax;top:8vh;width:70vmax;height:70vmax;border-radius:50%;pointer-events:none;background:radial-gradient(circle,var(--haze),transparent 60%);animation:haze 26s ease-in-out infinite alternate}
-@keyframes grid{to{transform:translate(8px,8px)}}
-@keyframes haze{to{transform:translate(-18vmax,22vh) scale(1.12)}}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
 button,input,select,textarea{font:inherit;color:inherit}
-a{color:var(--neon2)}
-.container{width:min(100% - 32px,1000px);margin:auto}
-header{position:sticky;top:0;z-index:50;background:rgba(var(--hdr),.8);border-bottom:1px solid var(--bd);padding:10px 0;padding-top:calc(10px + env(safe-area-inset-top))}
-.hd{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{display:flex;align-items:center;gap:10px}
-.brand svg{width:40px;height:40px;filter:drop-shadow(0 0 10px rgba(var(--ac),.45))}
-.wm{font-size:22px;font-weight:800}.wm span,.grad{color:var(--neon);text-shadow:0 0 18px rgba(var(--ac),.45)}
-nav{display:flex;gap:2px;padding:4px;border-radius:999px;background:var(--glass);border:1px solid rgba(var(--fg),.14);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:inset 0 1px 0 rgba(var(--fg),.16),0 8px 28px rgba(var(--sh),.45)}
-.tab{position:relative;display:flex;align-items:center;gap:6px;color:var(--mut);text-decoration:none;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;transition:.2s}
-.tab:hover{color:#fff}
-.tab.on{color:var(--neon2);background:rgba(var(--ac),.1);box-shadow:inset 0 0 0 1px rgba(var(--ac),.28),0 0 18px rgba(var(--ac),.22)}
-.tab i{display:none;font-style:normal}
-.tab .s{display:none}
-.page{animation:rise .5s both}
-.hero{padding:34px 0 8px}
-.hero h1{font-size:clamp(28px,8vw,40px);line-height:1.08;margin-bottom:10px;font-weight:700}
-.hero p{font-size:14px;color:var(--mut);max-width:520px;line-height:1.55}
-.hero{text-align:center}.hero p,.hero .sbox{margin-left:auto;margin-right:auto}.hero .sugg{justify-content:center}
-.sbox{position:relative;isolation:isolate;margin-top:22px;width:min(100%,430px);display:flex;align-items:center;padding:6px 6px 6px 0;border-radius:999px;background:linear-gradient(180deg,rgba(var(--fg),.12),rgba(var(--fg),.03));border:1px solid rgba(var(--fg),.16);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 rgba(var(--fg),.22),0 10px 30px rgba(var(--sh),.5)}
-.sbox::after{content:"+";position:absolute;left:18px;top:50%;transform:translateY(-54%);color:var(--neon);font-size:28px;font-weight:300;line-height:1;text-shadow:0 0 10px var(--neon)}
-.sbox::before{content:"";position:absolute;z-index:-1;left:44px;top:-6px;bottom:-6px;width:58%;border-radius:50%;background:radial-gradient(ellipse at 30% 50%,rgba(var(--ac),.7),rgba(var(--ac),.18) 45%,transparent 72%);filter:blur(16px);opacity:.28;transition:opacity .3s}
-.sbox:focus-within::before,.sbox.busy::before{opacity:1}
-.sbox input{flex:1;min-width:0;border:0;outline:0;background:transparent;padding:12px 8px 12px 48px;caret-color:var(--neon)}
-.sbox input::placeholder{color:#8b9097}
-.sbtn{flex:none;width:44px;height:44px;border:0;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--neon);color:var(--on-ac);box-shadow:0 0 18px rgba(var(--ac),.45)}
-.sbox.busy .sbtn{background:rgba(var(--sh),.55);box-shadow:0 0 20px rgba(var(--ac),.5)}
-.spin,.ring{display:inline-block;border-radius:50%;border:3px dotted var(--neon);animation:rot 1.1s linear infinite;filter:drop-shadow(0 0 5px var(--neon))}
-.spin{width:24px;height:24px}.ring{width:36px;height:36px;border-width:4px}
+.wrap{width:min(100% - 32px,1120px);margin:0 auto}
+[hidden]{display:none!important}
+/* header */
+header.top{position:sticky;top:0;z-index:50;background:rgba(var(--bgrgb),.85);backdrop-filter:saturate(160%) blur(14px);-webkit-backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--tx);font-weight:800;font-size:19px;letter-spacing:-.02em}.brand:hover{text-decoration:none}.brand svg{width:34px;height:34px}.brand b{color:var(--brand)}
+.links{display:flex;gap:2px}.links a{padding:8px 14px;border-radius:10px;color:var(--tx2);font-size:14px;font-weight:500}.links a:hover,.links a.on{color:var(--tx);background:var(--surface2);text-decoration:none}
+.bar-r{display:flex;align-items:center;gap:8px}
+.cta{background:var(--brand);color:var(--on-brand);padding:9px 16px;border-radius:999px;font-weight:700;font-size:14px}.cta:hover{text-decoration:none;filter:brightness(1.07)}
+.icon{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:16px;display:inline-grid;place-items:center}
+.menu{display:none}.mnav{display:none;flex-direction:column;padding:6px 16px 12px;border-top:1px solid var(--line)}.mnav.open{display:flex}.mnav a{padding:13px 4px;color:var(--tx);font-weight:500;border-bottom:1px solid var(--line)}.mnav a:last-child{border:0}
+@media(max-width:820px){.links,.cta{display:none}.menu{display:inline-grid}}
+/* hero */
+.hero{position:relative;padding:68px 0 36px;text-align:center}
+.hero::before{content:"";position:absolute;left:0;right:0;top:0;height:460px;background:radial-gradient(55% 70% at 50% 0,var(--glow),transparent 72%);z-index:-1}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:var(--brand-soft);color:var(--brand);font-size:13px;font-weight:700}
+h1{font-size:clamp(36px,7vw,64px);line-height:1.04;letter-spacing:-.035em;font-weight:800;margin:20px auto 16px;max-width:780px}h1 em{font-style:normal;color:var(--brand);white-space:nowrap}h1{text-wrap:balance}
+.lead{font-size:clamp(16px,2.3vw,19px);color:var(--tx2);max-width:560px;margin:0 auto}
+.search{display:flex;align-items:center;gap:8px;max-width:640px;margin:30px auto 0;padding:7px 7px 7px 20px;background:var(--surface);border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow);transition:.2s}
+.search:focus-within,.search.busy{border-color:var(--brand);box-shadow:0 0 0 4px var(--glow2),var(--shadow)}
+.search>svg{flex:none;color:var(--mut)}
+.search input{flex:1;min-width:0;border:0;outline:0;background:transparent;padding:11px 4px;font-size:16px}
+.search input::placeholder{color:var(--mut)}
+.go{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:48px;height:48px;padding:0 22px;border:0;border-radius:999px;background:var(--brand);color:var(--on-brand);font-weight:700;font-size:15px;cursor:pointer}.go:hover{filter:brightness(1.07)}
+@media(max-width:520px){.go{padding:0;width:48px}.go .gl{display:none}}
+.spin{width:18px;height:18px;border:2.5px solid currentColor;border-right-color:transparent;border-radius:50%;display:inline-block;animation:rot .7s linear infinite}
 @keyframes rot{to{transform:rotate(360deg)}}
-.sbar{display:none;align-items:center;gap:12px;margin-top:16px}.sbar small{color:var(--mut);font-size:12px}
-.sugg{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:var(--mut);align-items:center}
-.sugg button{border:1px solid var(--bd);background:var(--glass);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:12px}
-main{padding:24px 0}
-h2.pt{font-size:24px;margin-bottom:6px}.sub{color:var(--mut);font-size:13px;line-height:1.55;margin-bottom:16px}
-.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.action,.card,.notice{background:var(--glass);border:1px solid var(--bd);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 rgba(var(--fg),.1)}
-.action{padding:16px;border-radius:18px;text-decoration:none;color:inherit;display:block;transition:.2s}
-.action:hover{transform:translateY(-3px);border-color:rgba(var(--ac),.5);box-shadow:0 0 22px rgba(var(--ac),.15)}
-.action-icon{width:42px;height:42px;background:rgba(var(--ac),.1);border:1px solid rgba(var(--ac),.25);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;margin-bottom:10px}
-.action strong{display:block;font-size:14px;margin-bottom:5px}.action small{color:var(--mut);font-size:11px}
-.notice{border-radius:16px;padding:16px;margin:20px 0;font-size:12px;line-height:1.6;border-color:rgba(var(--ac),.25);background:rgba(var(--ac),.05)}.notice strong{color:var(--neon2)}
-.section-title{display:flex;justify-content:space-between;align-items:center;margin:24px 0 12px}.section-title h2{font-size:19px}
-.list{display:grid;grid-template-columns:1fr;gap:12px}.list.one{grid-template-columns:1fr}
-.alert{background:var(--glass);border:1px solid var(--bd);border-radius:16px;padding:16px;text-decoration:none;color:inherit;display:block;transition:.2s}
-.alert:hover{border-color:rgba(var(--ac),.5);transform:translateY(-2px)}
-.alert .d{font-size:11px;color:var(--mut);margin-bottom:6px}.alert h3{font-size:13px;line-height:1.45;margin-bottom:8px}
-.alert h3,.rcard h3,.post h3{overflow-wrap:anywhere}
-.badge{display:inline-block;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:bold}
-.b-cf{color:var(--cf-t);background:rgba(255,79,81,.2)}.b-ban{color:#fff;background:#b3232f}.b-rc{color:var(--rc-t);background:rgba(255,179,71,.2)}.b-su{color:var(--su-t);background:rgba(255,226,92,.16)}.b-sa{color:var(--sa-t);background:rgba(120,160,255,.2)}
-.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin:12px 0}
-.chip{white-space:nowrap;border:1px solid var(--bd);background:var(--glass);padding:9px 14px;border-radius:30px;cursor:pointer;font-size:12px}
-.chip.on{background:var(--neon);color:var(--on-ac);border-color:transparent;font-weight:bold;box-shadow:0 0 16px rgba(var(--ac),.35)}
-.status{font-size:12px;margin:10px 0;color:var(--mut);line-height:1.5}.status.warn{background:rgba(255,179,71,.1);border:1px solid rgba(255,179,71,.35);border-radius:12px;padding:12px;color:var(--tx)}
-.card{border-radius:18px;padding:22px}
-.form-group{margin-top:14px}.form-group label{display:block;font-size:12px;font-weight:bold;margin-bottom:6px}
-.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px;border:1px solid rgba(var(--fg),.14);border-radius:12px;outline:none;background:rgba(var(--fg),.06)}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(var(--ac),.12)}
-option{color:#111}.form-group textarea{min-height:100px;resize:vertical}
-.row{display:grid;grid-template-columns:1fr;gap:0 12px}
-.primary-btn{width:100%;border:0;background:var(--neon);color:var(--on-ac);padding:14px;border-radius:999px;margin-top:18px;cursor:pointer;font-weight:800;box-shadow:0 0 22px rgba(var(--ac),.35)}
-.primary-btn:active{transform:scale(.98)}.primary-btn:disabled{opacity:.6}
-.secondary-btn{border:1px solid var(--bd);background:var(--glass);padding:12px 18px;border-radius:999px;cursor:pointer;font-weight:bold;margin-top:12px}
-.hint{font-size:11px;color:var(--mut);margin-top:5px;line-height:1.5}
-.hp{position:absolute;left:-9999px}
-#done{display:none;text-align:center}#done .ic{font-size:48px}
-details{background:var(--glass);border:1px solid var(--bd);border-radius:14px;padding:14px 16px;margin-bottom:10px}
-summary{cursor:pointer;font-weight:bold;font-size:14px}
-details p,details li{font-size:13px;line-height:1.65;color:var(--tx2);margin-top:10px}details ul{padding-left:20px}
-.modal{display:none;position:fixed;inset:0;background:var(--ovl);backdrop-filter:blur(4px);z-index:100;padding:18px;overflow-y:auto;animation:fade .25s}
-@keyframes fade{from{opacity:0}}
-.mc{background:rgba(var(--panel),.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--bd);width:min(100%,540px);margin:30px auto;border-radius:24px;padding:26px;position:relative;box-shadow:0 30px 70px rgba(var(--sh),.6),0 0 40px rgba(var(--ac),.08);animation:pop .55s cubic-bezier(.2,1.25,.3,1)}
-@keyframes pop{0%{opacity:0;transform:translateY(60px) scale(.85)}100%{opacity:1;transform:none}}
-@keyframes rise{from{opacity:0;transform:translateY(14px)}}
-.close{position:absolute;right:18px;top:12px;font-size:28px;color:var(--mut);cursor:pointer}
-.big{font-size:44px;display:inline-block;animation:bounce 1s .3s both}
-@keyframes bounce{0%{transform:scale(0)}50%{transform:scale(1.3) rotate(-8deg)}70%{transform:scale(.95) rotate(4deg)}100%{transform:scale(1)}}
-.mc h2{font-size:22px;margin:4px 0}
-.sec{font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:var(--neon2);margin:18px 0 6px}
-.alert-item{padding:12px 0;border-bottom:1px solid var(--bd);animation:rise .45s both;animation-delay:calc(var(--i)*80ms)}
-.alert-item h3{font-size:13px;line-height:1.45;margin:4px 0 8px}
-.rtop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-.st{flex:none;font-size:11px;font-weight:bold;border-radius:20px;padding:5px 10px;display:inline-flex;align-items:center;gap:6px}
-.st i{width:8px;height:8px;border-radius:50%;background:currentColor;display:inline-block}
-.st.on{color:var(--ok-t);background:rgba(var(--ok-rgb),.15)}.st.on i{animation:pulse 1.4s infinite}
-.st.off{color:var(--cf-t);background:rgba(255,79,81,.2)}.st.un{color:var(--tx2);background:rgba(var(--fg),.1)}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(var(--ok-rgb),.6)}100%{box-shadow:0 0 0 8px rgba(var(--ok-rgb),0)}}
-.tips{background:rgba(var(--ac),.06);border:1px solid rgba(var(--ac),.25);border-radius:14px;padding:14px;margin-top:16px;font-size:12px;line-height:1.7}
-.vmeta{margin:18px 0 6px;font-size:14px}
-.rcard{background:var(--glass);border:1px solid var(--bd);border-radius:16px;padding:16px;animation:rise .45s both;animation-delay:calc(var(--i)*70ms)}
-.rcard h3{font-size:15px;line-height:1.35}
-.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:12px 0}
-.fields small{display:block;color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
-.fields b{font-size:13px;word-break:break-word}
-.post{background:var(--glass);border:1px solid var(--bd);border-radius:16px;padding:16px 18px;margin-bottom:12px}
-.post summary{list-style:none}.post summary::-webkit-details-marker{display:none}
-.post .meta{font-size:11px;color:var(--mut);margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.post h3{font-size:16px;line-height:1.4;margin-bottom:6px}.post .lead{font-size:13px;color:var(--tx2);line-height:1.6}
-.post .more{display:inline-block;margin-top:8px;font-size:12px;color:var(--neon2);font-weight:bold}.post[open] .more{display:none}
-.post .body p,.post .body li{font-size:13px;line-height:1.7;color:var(--tx2);margin-top:10px}.post .body ul{padding-left:20px}
-.post .src{font-size:12px;margin-top:14px}
-footer{text-align:center;padding:30px 20px 20px;color:var(--mut);font-size:11px;line-height:1.8}
-.fab{position:fixed;right:18px;bottom:18px;z-index:90;width:58px;height:58px;border-radius:50%;border:0;cursor:pointer;font-size:26px;background:var(--neon);box-shadow:0 0 24px rgba(var(--ac),.5)}
-.fab::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid var(--neon);animation:ring 2s infinite}
-@keyframes ring{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.6);opacity:0}}
-.chat{display:none;position:fixed;right:18px;bottom:96px;z-index:90;width:350px;max-width:calc(100vw - 36px);height:480px;max-height:calc(100vh - 130px);background:rgba(var(--panel),.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--bd);border-radius:22px;box-shadow:0 24px 60px rgba(var(--sh),.6);flex-direction:column;overflow:hidden;animation:pop .45s cubic-bezier(.2,1.25,.3,1)}
-.chat header{position:static;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:14px;background:rgba(var(--fg),.05);border-bottom:1px solid var(--bd)}
-.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
-.m{max-width:85%;padding:10px 13px;border-radius:16px;font-size:13px;line-height:1.55;white-space:pre-wrap;animation:rise .3s both}
-.m.bot{background:rgba(var(--fg),.09);border-bottom-left-radius:4px;align-self:flex-start}
-.m.user{background:var(--neon);color:var(--on-ac);font-weight:600;border-bottom-right-radius:4px;align-self:flex-end}
-.dots span{display:inline-block;width:7px;height:7px;margin:0 2px;border-radius:50%;background:var(--neon);animation:dot 1s infinite}.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
-@keyframes dot{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-5px);opacity:1}}
-.cq{display:flex;gap:6px;overflow-x:auto;padding:0 12px 8px}.cq button{flex:none;border:1px solid var(--bd);background:var(--glass);border-radius:16px;padding:6px 10px;font-size:11px;cursor:pointer}
-.cin{display:flex;gap:8px;padding:10px;border-top:1px solid var(--bd)}.cin input{flex:1;background:rgba(var(--fg),.06);border:1px solid var(--bd);border-radius:999px;padding:10px 14px;outline:none;min-width:0}
-.cin button{border:0;border-radius:50%;width:40px;cursor:pointer;background:var(--neon);color:var(--on-ac);font-weight:bold}
-.qr{display:flex;flex-wrap:wrap;gap:6px;align-self:flex-start;animation:rise .3s both}.qr button{border:1px solid rgba(var(--ac),.4);background:rgba(var(--ac),.08);color:var(--neon2);border-radius:999px;padding:7px 12px;font-size:12px;cursor:pointer}.qr button:hover{background:rgba(var(--ac),.18)}
-.qlinks{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:24px}
-.qlinks a{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:999px;border:1px solid var(--bd);background:var(--glass);color:var(--tx);text-decoration:none;font-size:13px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.qlinks a:hover{border-color:rgba(var(--ac),.5)}
-.filters{margin-top:12px}.filters .chips{margin:4px 0}
-.flabel{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;margin:10px 0 2px}
-.fsel{width:100%;max-width:430px;padding:10px 12px;border-radius:12px;border:1px solid var(--bd);background:rgba(var(--fg),.06);margin-top:8px;outline:none}
-.cnote{font-size:10px;color:var(--mut);text-align:center;padding:0 10px 8px}
+.try{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px;font-size:13px;color:var(--mut);align-items:center}
+.try button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 13px;cursor:pointer;font-size:13px;color:var(--tx2)}.try button:hover{border-color:var(--brand);color:var(--brand)}
+.ftbtn{margin:16px auto 0;display:inline-flex;gap:6px;align-items:center;background:none;border:0;color:var(--tx2);font-size:13px;font-weight:600;cursor:pointer}.ftbtn:hover{color:var(--brand)}
+.filters{max-width:640px;margin:12px auto 0;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px 18px}
+.flabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);margin:12px 0 8px}.flabel:first-child{margin-top:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;color:var(--tx2)}.chip:hover{border-color:var(--brand)}
+.chip.on{background:var(--brand);border-color:var(--brand);color:var(--on-brand);font-weight:700}
+.fsel{width:100%;margin-top:12px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);outline:none}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:940px;margin:40px auto 0}
+@media(min-width:780px){.stats{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.stat{min-width:0;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;transition:.2s}
+.stat:hover{transform:translateY(-3px);border-color:var(--brand);box-shadow:var(--shadow)}
+.stat b{display:block;font-size:clamp(20px,5vw,27px);font-weight:800;letter-spacing:-.02em;line-height:1.15;white-space:nowrap;overflow:hidden;font-variant-numeric:tabular-nums}
+.stat.ok b{color:var(--ok)}.stat.cf b,.stat.ban b{color:var(--bad)}.stat.off b{color:var(--mut)}
+.stat span{display:block;font-size:12px;color:var(--mut);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fine{font-size:12px;color:var(--mut);text-align:center;margin-top:14px}
+/* results */
+.results{padding:8px 0 24px}.rw{max-width:900px}
+#vbar{display:none}
+.skel{height:132px;border-radius:var(--r);background:linear-gradient(90deg,var(--surface2) 25%,var(--surface) 40%,var(--surface2) 60%);background-size:400% 100%;animation:shim 1.3s infinite;margin-bottom:12px}
+@keyframes shim{0%{background-position:100% 0}100%{background-position:0 0}}
+.vmeta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:6px 0 14px;font-size:15px}
+.linkbtn{border:0;background:none;color:var(--brand);font-weight:600;cursor:pointer;font-size:14px}
+.sec{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);margin:24px 0 10px}
+.list{display:grid;gap:12px;grid-template-columns:1fr}@media(min-width:780px){.list{grid-template-columns:1fr 1fr}}.list.one{grid-template-columns:1fr}
+.rcard,.alert,.card,.notice,.step,details{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.rcard{padding:18px 20px;box-shadow:var(--shadow);animation:rise .4s both;animation-delay:calc(var(--i)*60ms);text-align:left}
+.rcard h3{font-size:17px;line-height:1.3}.rtop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px;margin:16px 0 12px}@media(min-width:700px){.fields{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:380px){.fields{grid-template-columns:1fr}}
+.fields small{display:block;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;font-weight:600}.fields b{font-size:14px;font-weight:600;word-break:break-word}
+.hint{font-size:12px;color:var(--mut);margin-top:4px;line-height:1.5}
+.alert{display:block;padding:16px 18px;color:inherit;transition:.2s;text-align:left}.alert:hover{border-color:var(--brand);transform:translateY(-2px);text-decoration:none}
+.alert .d{font-size:12px;color:var(--mut);margin-bottom:6px}.alert h3{font-size:14px;line-height:1.45;margin-bottom:10px;font-weight:600}
+.alert h3,.rcard h3{overflow-wrap:anywhere}
+.badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700}
+.b-cf{color:var(--bad);background:var(--bad-bg)}.b-ban{background:#b3232f;color:#fff}.b-rc,.b-su{color:var(--warn);background:var(--warn-bg)}.b-sa{color:var(--info);background:var(--info-bg)}
+.st{flex:none;display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:700}.st i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.st.on{color:var(--ok);background:var(--ok-bg)}.st.off{color:var(--bad);background:var(--bad-bg)}.st.un{color:var(--mut);background:var(--surface2)}
+.notice{padding:14px 16px;font-size:14px;margin:10px 0;background:var(--warn-bg);border-color:transparent;text-align:left}.notice strong{color:var(--warn)}
+.status{font-size:13px;margin:0 0 16px;color:var(--mut)}.status.warn{background:var(--warn-bg);border-radius:12px;padding:12px 14px;color:var(--tx)}
+/* sections */
+.block{padding:80px 0}@media(max-width:700px){.block{padding:52px 0}}.block.soft{background:var(--surface2)}
+.stitle{font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-.025em;line-height:1.15}.ssub{color:var(--tx2);max-width:560px;margin:10px 0 0}
+.shead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.mini{padding:11px 16px;border:1px solid var(--line);border-radius:999px;background:var(--surface);min-width:240px;outline:none}.mini:focus{border-color:var(--brand)}
+.center{text-align:center;margin-top:20px}
+.steps{display:grid;gap:16px;grid-template-columns:1fr;margin-top:30px}@media(min-width:780px){.steps{grid-template-columns:repeat(3,1fr)}}
+.step{padding:24px}.step .ic{width:46px;height:46px;border-radius:14px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;margin-bottom:16px}.step h3{font-size:18px;margin-bottom:6px}.step p{font-size:14px;color:var(--tx2)}
+.split{display:grid;gap:36px;grid-template-columns:1fr}@media(min-width:920px){.split{grid-template-columns:5fr 6fr;align-items:start}}
+.contact{display:grid;gap:14px;margin-top:24px}.contact div{font-size:14px;color:var(--tx2);padding-left:14px;border-left:3px solid var(--brand)}.contact b{display:block;color:var(--tx)}
+.card{padding:26px;box-shadow:var(--shadow)}
+.form-group{margin-top:14px}.form-group:first-child{margin-top:0}.form-group label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;outline:none;background:var(--surface)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--glow2)}
+.form-group textarea{min-height:96px;resize:vertical}.row{display:grid;gap:0 12px;grid-template-columns:1fr}@media(min-width:700px){.row{grid-template-columns:1fr 1fr}}
+.more{margin-top:16px;border:0;padding:0;background:none}.more summary{font-size:14px;color:var(--brand);padding:0}.more summary::after{content:""}
+.primary-btn{width:100%;border:0;background:var(--brand);color:var(--on-brand);padding:14px;border-radius:12px;font-weight:700;cursor:pointer;margin-top:20px;font-size:15px}.primary-btn:hover{filter:brightness(1.07)}.primary-btn:disabled{opacity:.6}
+.secondary-btn{border:1px solid var(--line);background:var(--surface);padding:11px 20px;border-radius:999px;font-weight:600;cursor:pointer;margin:0 4px}.secondary-btn:hover{border-color:var(--brand);color:var(--brand)}
+.hp{position:absolute;left:-9999px}#done{display:none;text-align:center}#done .ic{font-size:44px}
+.faqgrid{display:grid;gap:10px 22px;grid-template-columns:1fr;margin-top:26px;align-items:start}@media(min-width:900px){.faqgrid{grid-template-columns:1fr 1fr}}
+details{padding:16px 20px}summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+summary::-webkit-details-marker{display:none}summary::after{content:"+";color:var(--brand);font-size:22px;line-height:1}details[open]>summary::after{content:"–"}
+details p,details li{font-size:14px;color:var(--tx2);margin-top:10px;line-height:1.65}details ul{padding-left:20px}
+.post summary{display:block}.post summary::after{content:""}.post .meta{font-size:12px;color:var(--mut);margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.post h3{font-size:16px;line-height:1.4;margin-bottom:6px}.post .lead{font-size:14px;color:var(--tx2);margin:0}.post .more{display:inline-block;margin:8px 0 0;font-size:13px;color:var(--brand);font-weight:600}.post[open] .more{display:none}.post .src{font-size:13px;margin-top:14px}
+.subh{font-size:20px;font-weight:800;margin:44px 0 0;letter-spacing:-.01em}
+footer{border-top:1px solid var(--line);padding:44px 0 56px;font-size:13px;color:var(--mut)}.fgrid{display:flex;justify-content:space-between;gap:28px;flex-wrap:wrap}.fgrid a{color:var(--tx2);margin-right:16px}.fgrid p{max-width:480px;margin-top:10px}
+/* modal */
+.modal{display:none;position:fixed;inset:0;background:rgba(15,16,20,.55);backdrop-filter:blur(3px);z-index:100;padding:18px;overflow-y:auto;animation:fade .2s}@keyframes fade{from{opacity:0}}
+.mc{background:var(--surface);border:1px solid var(--line);width:min(100%,540px);margin:40px auto;border-radius:22px;padding:28px;position:relative;box-shadow:0 30px 70px rgba(0,0,0,.3);animation:pop .4s cubic-bezier(.2,1.2,.3,1)}
+@keyframes pop{0%{opacity:0;transform:translateY(40px) scale(.94)}100%{opacity:1;transform:none}}@keyframes rise{from{opacity:0;transform:translateY(12px)}}
+.close{position:absolute;right:18px;top:12px;font-size:28px;color:var(--mut);cursor:pointer;line-height:1}
+.big{font-size:42px;display:inline-block;animation:bounce .8s .2s both}@keyframes bounce{0%{transform:scale(0)}55%{transform:scale(1.25)}100%{transform:scale(1)}}
+.mc h2{font-size:22px;margin:6px 0 4px}.mc .sub,#rSub{color:var(--mut);font-size:14px}
+.alert-item{padding:12px 0;border-bottom:1px solid var(--line);animation:rise .4s both;animation-delay:calc(var(--i)*70ms)}.alert-item h3{font-size:14px;line-height:1.45;margin:4px 0 8px;font-weight:600}
+.tips{background:var(--warn-bg);border-radius:14px;padding:14px 16px;margin-top:18px;font-size:13px;line-height:1.7}
+/* chat */
+.fab{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;border:0;background:var(--brand);color:var(--on-brand);font-size:24px;box-shadow:0 10px 28px rgba(0,0,0,.28);cursor:pointer;z-index:80}.fab:hover{transform:scale(1.06)}
+.chat{display:none;position:fixed;right:20px;bottom:88px;width:370px;max-width:calc(100vw - 32px);height:520px;max-height:calc(100vh - 120px);background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.28);flex-direction:column;overflow:hidden;z-index:80;animation:pop .3s}
+.chat header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;font-weight:700;border-bottom:1px solid var(--line);background:var(--surface2)}
+.msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.m{max-width:88%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap;animation:rise .25s both}
+.m.bot{background:var(--surface2);border-bottom-left-radius:4px;align-self:flex-start}.m.user{background:var(--brand);color:var(--on-brand);border-bottom-right-radius:4px;align-self:flex-end}
+.qr{display:flex;flex-wrap:wrap;gap:6px;align-self:flex-start}.qr button{border:1px solid var(--line);background:var(--surface);color:var(--brand);border-radius:999px;padding:7px 13px;font-size:13px;cursor:pointer;font-weight:500}.qr button:hover{border-color:var(--brand)}
+.dots span{display:inline-block;width:7px;height:7px;margin:0 2px;border-radius:50%;background:var(--mut);animation:dot 1s infinite}.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-4px);opacity:1}}
+.cin{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}.cin input{flex:1;border:1px solid var(--line);border-radius:999px;padding:10px 16px;background:var(--surface);outline:none;min-width:0}.cin input:focus{border-color:var(--brand)}.cin button{border:0;background:var(--brand);color:var(--on-brand);border-radius:50%;width:42px;cursor:pointer;font-weight:700}
+.cnote{font-size:11px;color:var(--mut);text-align:center;padding:0 12px 10px}
+@media(max-width:520px){.chat{right:12px;left:12px;width:auto;max-width:none;bottom:84px;height:min(70vh,520px)}.fab{right:14px;bottom:16px}.mc{margin:20px auto;padding:22px}input,select,textarea{font-size:16px!important}}
 /* intro splash */
-#splash{position:fixed;inset:0;z-index:999;background:var(--bg0);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .7s ease,visibility .7s;animation:splashout .01s 6s forwards}
-#splash.hide{opacity:0;visibility:hidden}
-@keyframes splashout{to{opacity:0;visibility:hidden}}
-#splash::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(var(--fg),var(--dotA)) 1.1px,transparent 1.6px);background-size:8px 8px;-webkit-mask-image:radial-gradient(circle at 50% 45%,#000,transparent 70%);mask-image:radial-gradient(circle at 50% 45%,#000,transparent 70%);animation:grid 6s linear infinite}
-.sp-core{position:relative;width:132px;height:132px;display:flex;align-items:center;justify-content:center}
-.sp-ring{position:absolute;inset:0;border-radius:50%;border:5px dotted var(--neon);animation:rot 2.4s linear infinite;filter:drop-shadow(0 0 10px var(--neon))}
-.sp-ring.r2{inset:14px;border-width:3px;animation-direction:reverse;animation-duration:3.2s;opacity:.55}
-.sp-core svg{width:64px;height:64px;animation:pop2 1s .2s both,glowp 1.8s 1.2s infinite alternate}
-@keyframes pop2{from{transform:scale(.3);opacity:0}}
-@keyframes glowp{to{filter:drop-shadow(0 0 16px rgba(var(--ac),.85))}}
-.sp-wm{position:relative;font-size:28px;font-weight:800;animation:rise .7s .6s both}.sp-wm span{color:var(--neon);text-shadow:0 0 18px rgba(var(--ac),.5)}
-.sp-tag{position:relative;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--mut);animation:rise .7s .9s both}
-.sp-bar{position:relative;width:160px;height:3px;border-radius:3px;background:rgba(var(--fg),.12);overflow:hidden;margin-top:10px}
-.sp-bar i{display:block;height:100%;width:0;background:var(--neon);box-shadow:0 0 12px var(--neon);animation:fill 3s linear forwards}
-@keyframes fill{to{width:100%}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
-@media(max-width:699px){
-body{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
-header{padding:8px 0;padding-top:calc(8px + env(safe-area-inset-top))}
-.brand svg{width:32px;height:32px}.wm{font-size:19px}
-nav{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:60;justify-content:space-around;gap:0;border-radius:24px;padding:6px 4px}
-.tab{flex:1;flex-direction:column;justify-content:center;gap:2px;padding:7px 0;font-size:10px;text-align:center;border-radius:16px}
-.tab i{display:block;font-size:18px;line-height:1}
-.tab .f{display:none}.tab .s{display:inline}
-.hero{padding:22px 0 2px}.hero p{font-size:13px}
-h2.pt{font-size:21px}
-input,select,textarea{font-size:16px!important}
-.action{padding:14px}.action-icon{width:38px;height:38px;margin-bottom:8px}
-.card{padding:16px}.rcard{padding:14px}
-.primary-btn,.secondary-btn{min-height:46px}
-.modal{padding:10px}.mc{margin:12px auto;padding:20px;border-radius:20px}
-.fab{width:52px;height:52px;font-size:23px;right:14px;bottom:calc(86px + env(safe-area-inset-bottom))}
-.chat{left:8px;right:8px;width:auto;max-width:none;bottom:calc(148px + env(safe-area-inset-bottom));height:min(66vh,520px);max-height:none}
-footer{padding:22px 16px 10px}
-}
-@media(max-width:380px){.fields{grid-template-columns:1fr}.actions{gap:10px}}
-@media(min-width:700px){.actions{grid-template-columns:repeat(4,1fr)}.list{grid-template-columns:1fr 1fr}.list.one{grid-template-columns:1fr}.row{grid-template-columns:1fr 1fr}}
-
-html[data-theme="orange"]::before{content:"";position:fixed;z-index:-1;left:-30vmax;top:-30vmax;width:80vmax;height:80vmax;border-radius:50%;pointer-events:none;background:radial-gradient(circle,var(--haze2),transparent 60%);animation:haze 22s ease-in-out infinite alternate-reverse}
-
-html[data-theme="sand"]{--fg:58,44,36;--panel:250,246,240;--hdr:240,233,224;--sh:90,70,55;--ac:197,138,99;--neon:#b9794f;--neon2:#8f4f2b;--on-ac:#2a1608;--tx:#3a2f28;--tx2:#5c4e44;--mut:#74655a;--bg0:#efe7dc;--bgfill:linear-gradient(180deg,#c9beb2 0%,#e2d9ce 42%,#f1ebe2 100%);--dotA:0;--haze:rgba(255,236,215,.55);--haze2:transparent;--ok-t:#2f7d4f;--ok-rgb:47,125,79;--ovl:rgba(58,44,36,.45);--cf-t:#b3342f;--rc-t:#a4560f;--su-t:#7d6400;--sa-t:#4a5fb8}
-html[data-theme="sand"] body{background-attachment:fixed}
-html[data-theme="sand"]{--glass:rgba(255,255,255,.5);--bd:rgba(120,95,75,.22)}
-/* sand-glass background scene (CSS only) */
-#bgart{display:none;position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
-html[data-theme="sand"] #bgart{display:block}
-#bgart .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(120,100,85,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(120,100,85,.07) 1px,transparent 1px);background-size:76px 76px;-webkit-mask-image:linear-gradient(#000,transparent 70%);mask-image:linear-gradient(#000,transparent 70%)}
-#bgart .floor{position:absolute;left:-10%;right:-10%;bottom:-22vh;height:58vh;background:radial-gradient(ellipse at 50% 0,rgba(255,251,245,.95),rgba(255,251,245,0) 70%)}
-#bgart .gp{position:absolute;width:var(--w);height:var(--h);left:var(--x);top:var(--y);border-radius:26px;background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(255,255,255,.16));border:1px solid rgba(255,255,255,.7);box-shadow:0 30px 60px rgba(120,95,75,.18),inset 0 1px 0 rgba(255,255,255,.9);transform:rotate(var(--r)) skewX(var(--k));animation:gfloat var(--d) ease-in-out infinite alternate;overflow:hidden}
-#bgart .gp svg{position:absolute;inset:0;width:100%;height:100%}
-#bgart .gp.stone{background:radial-gradient(rgba(120,98,82,.38) 1.2px,transparent 2.2px) 0 0/9px 9px,linear-gradient(145deg,#eadfd2,#d4c5b5)}
-#bgart .sph{position:absolute;left:var(--x);top:var(--y);width:var(--s);height:var(--s);border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff3e8,#f1c7a8 45%,#d79c78 80%,#c4875f);box-shadow:0 30px 50px rgba(150,105,75,.28);animation:gfloat var(--d) ease-in-out infinite alternate}
-#bgart .leaf{position:absolute;right:-4vmin;bottom:6vh;width:30vmin;height:34vmin;opacity:.55}
-@keyframes gfloat{to{transform:translateY(-18px) rotate(calc(var(--r,0deg) + 3deg)) skewX(var(--k,0deg))}}
-@media(max-width:699px){#bgart .gp.hide-m{display:none}#bgart .gp{border-radius:20px}}
-.themebox{position:relative}
-.themebtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--bd);background:var(--glass);cursor:pointer;font-size:17px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.tmenu{display:none;position:absolute;right:0;top:46px;min-width:176px;background:rgba(var(--panel),.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--bd);border-radius:16px;padding:8px;box-shadow:0 18px 40px rgba(var(--sh),.35);z-index:70}
-.tmenu.open{display:block}
-.tmenu .tl{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);padding:6px 10px}
-.tmenu button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;padding:9px 10px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--tx);text-align:left}
-.tmenu button:hover{background:var(--glass)}.tmenu button.on{background:rgba(var(--ac),.12);color:var(--neon2)}
-.tmenu i{width:16px;height:16px;border-radius:50%;display:inline-block;border:1px solid rgba(var(--fg),.25)}
-.dash{margin-top:0}.dashtop{padding-top:18px}
-#p-home .hero{padding-top:26px}
-.dtitle{font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:var(--mut);margin-bottom:10px;text-align:center}
-.dgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.tile{position:relative;min-width:0;text-align:left;border:1px solid var(--bd);background:var(--glass);border-radius:16px;padding:12px 10px 12px 15px;cursor:pointer;color:inherit;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:.2s;overflow:hidden}
-.tile:hover{transform:translateY(-3px);border-color:rgba(var(--ac),.5)}
-.tile b{display:block;font-size:clamp(20px,6vw,26px);font-weight:800;line-height:1.1;white-space:nowrap;overflow:hidden;font-variant-numeric:tabular-nums}
-.tile span{display:block;font-size:12px;color:var(--mut);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--tc,var(--neon))}
-.tile.cf{--tc:#ff5a5f}.tile.ban{--tc:#e11d48}.tile.rc{--tc:#ffb020}.tile.su{--tc:#ffd400}.tile.ok{--tc:#22c55e}.tile.off{--tc:#94a3b8}
-#p-verify main{max-width:760px;text-align:center}
-#p-verify .rcard,#p-verify .notice,#p-verify .alert,#p-verify .sec{text-align:left}
-#p-verify .sbox{margin-left:auto;margin-right:auto}
-#p-verify .sbar{justify-content:center}
-#p-verify .filters .chips>:first-child{margin-left:auto}#p-verify .filters .chips>:last-child{margin-right:auto}
-#p-verify .fsel{margin-left:auto;margin-right:auto;display:block}
-@media(min-width:700px){.dgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+#splash{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .6s ease,visibility .6s;animation:splashout .01s 6s forwards}
+#splash.hide{opacity:0;visibility:hidden}@keyframes splashout{to{opacity:0;visibility:hidden}}
+#splash::before{content:"";position:absolute;inset:0;background:radial-gradient(40% 40% at 50% 42%,var(--glow),transparent 70%)}
+#spLogo svg{width:76px;height:76px;position:relative;animation:pop2 .9s .1s both}@keyframes pop2{from{transform:scale(.4);opacity:0}}
+.sp-wm{position:relative;font-size:30px;font-weight:800;letter-spacing:-.02em;animation:rise .7s .5s both}.sp-wm span{color:var(--brand)}
+.sp-tag{position:relative;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);animation:rise .7s .8s both}
+.sp-bar{position:relative;width:150px;height:3px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:14px}.sp-bar i{display:block;height:100%;width:0;background:var(--brand);animation:fill 3s linear forwards}@keyframes fill{to{width:100%}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body class="loading">
-<div id="bgart" aria-hidden="true">
-<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6dcc6"/><stop offset=".5" stop-color="#c98e6c"/><stop offset="1" stop-color="#f4d6bf"/></linearGradient></defs></svg>
-<div class="grid"></div>
-<div class="gp" style="--w:26vw;--h:30vh;--x:4vw;--y:16vh;--r:-16deg;--k:-10deg;--d:15s"><svg viewBox="0 0 200 120" preserveAspectRatio="none"><path d="M0 104C54 62 108 112 200 26" fill="none" stroke="url(#rg)" stroke-width="3.5"/></svg></div>
-<div class="gp hide-m" style="--w:22vw;--h:24vh;--x:62vw;--y:9vh;--r:12deg;--k:12deg;--d:18s"><svg viewBox="0 0 200 120" preserveAspectRatio="none"><path d="M0 40C60 20 120 100 200 70" fill="none" stroke="url(#rg)" stroke-width="3.5"/></svg></div>
-<div class="gp stone hide-m" style="--w:24vw;--h:26vh;--x:12vw;--y:58vh;--r:-12deg;--k:8deg;--d:20s"><svg viewBox="0 0 200 120" preserveAspectRatio="none"><path d="M0 78C70 60 120 110 200 50" fill="none" stroke="url(#rg)" stroke-width="3"/></svg></div>
-<div class="gp" style="--w:24vw;--h:36vh;--x:66vw;--y:46vh;--r:-10deg;--k:-8deg;--d:17s"><svg viewBox="0 0 200 120" preserveAspectRatio="none"><path d="M0 110C60 70 130 90 200 10" fill="none" stroke="url(#rg)" stroke-width="3.5"/></svg></div>
-<div class="sph" style="--x:19vw;--y:12vh;--s:6vmin;--d:13s"></div>
-<div class="sph" style="--x:84vw;--y:60vh;--s:15vmin;--d:19s"></div>
-<div class="sph" style="--x:-4vw;--y:78vh;--s:20vmin;--d:22s"></div>
-<svg class="leaf" viewBox="0 0 120 140"><g fill="#7f9a72"><path d="M60 140C50 90 40 50 70 6 98 46 84 96 60 140Z"/><path d="M60 140C26 110 8 76 14 38 52 54 66 96 60 140Z" opacity=".8"/><path d="M60 140C92 118 112 90 110 52 76 62 56 98 60 140Z" opacity=".7"/></g></svg>
-<div class="floor"></div>
-</div>
+<div id="splash" onclick="endSplash()"><div id="spLogo"></div><div class="sp-wm">Checkn<span>Verify</span></div><div class="sp-tag">Check before you buy</div><div class="sp-bar"><i></i></div></div>
 
-<div id="splash" onclick="endSplash()"><div class="sp-core"><div class="sp-ring"></div><div class="sp-ring r2"></div><div id="spLogo"></div></div><div class="sp-wm">Checkn<span>Verify</span></div><div class="sp-tag">Check before you buy</div><div class="sp-bar"><i></i></div></div>
-<header><div class="container hd">
-<div class="brand">
-<svg id="logoSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop id="lgA" offset="0" stop-color="#d6ff5a"/><stop id="lgB" offset="1" stop-color="#9bd400"/></linearGradient></defs><path d="M32 2 58 12v18c0 16-11 27-26 32C17 57 6 46 6 30V12z" fill="url(#lg)"/><path d="M32 8 52 16v14c0 12-8 22-20 26C20 52 12 42 12 30V16z" fill="#0b0b0b"/><circle cx="29" cy="27" r="10" fill="none" stroke="#fff" stroke-width="4"/><path d="M36 34 44 42" stroke="url(#lg)" stroke-width="6" stroke-linecap="round"/><path d="M24 27.5 27.5 31 34 23.5" fill="none" id="lgC" stroke="#b4f000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-<div class="wm">Checkn<span>Verify</span></div>
+<header class="top">
+<div class="wrap bar">
+<a class="brand" href="#top"><svg id="logoSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb36b"/><stop offset="1" stop-color="#e5590b"/></linearGradient></defs><path d="M32 2 58 12v18c0 16-11 27-26 32C17 57 6 46 6 30V12z" fill="url(#lg)"/><path d="M32 8 52 16v14c0 12-8 22-20 26C20 52 12 42 12 30V16z" fill="#1b1b1f"/><circle cx="29" cy="27" r="10" fill="none" stroke="#fff" stroke-width="4"/><path d="M36 34 44 42" stroke="url(#lg)" stroke-width="6" stroke-linecap="round"/><path d="M24 27.5 27.5 31 34 23.5" fill="none" stroke="#ff8a3d" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Checkn<b>Verify</b></span></a>
+<nav class="links"><a href="#check">Check</a><a href="#banned">Alerts</a><a href="#report">Report</a><a href="#faq">FAQ</a></nav>
+<div class="bar-r"><button class="icon" id="themeBtn" onclick="toggleTheme()" aria-label="Switch light or dark theme">☾</button><a class="cta" href="#report">Report a product</a><button class="icon menu" onclick="toggleMenu()" aria-label="Menu">☰</button></div>
 </div>
-<nav>
-<a class="tab" data-p="home" href="#home"><i>🏠</i><span>Home</span></a>
-<a class="tab" data-p="verify" href="#verify"><i>🔎</i><span>Check</span></a>
-<a class="tab" data-p="banned" href="#banned"><i>🚫</i><span class="f">Banned Products</span><span class="s">Banned</span></a>
-<a class="tab" data-p="blog" href="#blog"><i>📰</i><span>Blog</span></a>
-<a class="tab" data-p="report" href="#report"><i>⚠️</i><span class="f">Report a Product</span><span class="s">Report</span></a>
-<a class="tab" data-p="faq" href="#faq"><i>❓</i><span>FAQ</span></a>
-</nav>
-<div class="themebox"><button class="themebtn" id="themeBtn" onclick="toggleThemeMenu(event)" aria-label="Change theme" title="Change theme">🎨</button>
-<div class="tmenu" id="themeMenu"><div class="tl">Theme</div>
-<button data-t="dark" onclick="applyTheme('dark')"><i style="background:#b4f000"></i>Neon dark</button>
-<button data-t="white" onclick="applyTheme('white')"><i style="background:#ffffff"></i>White</button>
-<button data-t="orange" onclick="applyTheme('orange')"><i style="background:#ff7a1a"></i>Orange glass</button>
-<button data-t="sand" onclick="applyTheme('sand')"><i style="background:#cdbfae"></i>Sand glass</button></div></div>
-</div></header>
+<nav class="mnav" id="mnav"><a href="#check">Check a product</a><a href="#banned">Latest alerts</a><a href="#report">Report a product</a><a href="#faq">FAQ</a></nav>
+</header>
 
-<section class="page" id="p-home">
-<div class="container dashtop">
-<div class="dash"><div class="dtitle">At a glance</div><div class="dgrid" id="dgrid"></div><p class="hint" id="dnote" style="text-align:center;margin-top:10px"></p></div>
-</div>
-<div class="container hero">
-<h1>Check before <span class="grad">you buy.</span></h1>
-<p id="homeSub">Search NAFDAC-registered products by name or NRN and see whether they are Active.</p>
-<div class="sbox" id="sbox"><input id="q" placeholder="Search a product or NRN" onkeydown="if(event.key==='Enter')homeSearch()"><button class="sbtn" id="sbtn" onclick="homeSearch()" aria-label="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></div>
-<div class="sugg">Try: <button onclick="trySearch('Peak Milk')">Peak Milk</button><button onclick="trySearch('Augmentin')">Augmentin</button><button onclick="trySearch('Colgate')">Colgate</button></div>
-<div class="qlinks"><a href="#banned">🚫 Banned products</a><a href="#report">⚠️ Report a product</a><a href="#faq">❓ FAQ</a></div>
-<p class="hint" style="margin-top:20px">A product missing from the alerts is not proven genuine. Always check the NRN and that its status is Active.</p>
-</div>
-<main class="container">
-<div class="section-title"><h2>Latest NAFDAC alerts</h2><a href="#banned" style="font-size:13px">See all →</a></div>
-<div id="latest" class="list"></div>
-</main>
-</section>
+<main id="top">
+<section class="hero" id="check"><div class="wrap">
+<span class="eyebrow">Free · No sign-up · NAFDAC data</span>
+<h1>Check before <em>you buy.</em></h1>
+<p class="lead" id="homeSub">Search NAFDAC-registered products, recalls and counterfeit alerts by name or NRN.</p>
+<div class="search" id="vbox"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="vq" placeholder="Search a product or NRN, e.g. Peak Milk" autocomplete="off" onkeydown="if(event.key==='Enter')homeSearch()"><button class="go" id="vbtn" onclick="homeSearch()" aria-label="Search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="gl">Search</span></button></div>
+<div class="try">Try <button onclick="trySearch('Peak Milk')">Peak Milk</button><button onclick="trySearch('Augmentin')">Augmentin</button><button onclick="trySearch('Colgate')">Colgate</button></div>
+<button class="ftbtn" id="ftBtn" onclick="toggleFilters()" aria-expanded="false">⚙ Filters</button>
+<div class="filters" id="filters" hidden><div class="flabel">Search in</div><div class="chips" id="fField"></div><div class="flabel">Status</div><div class="chips" id="fStatus"></div><select id="fCat" class="fsel" onchange="setF('category',this.value)" aria-label="Category"><option value="">All categories</option></select></div>
+<div class="stats" id="dgrid"></div>
+<p class="fine" id="dnote"></p>
+</div></section>
 
-<section class="page" id="p-verify" style="display:none"><main class="container">
-<h2 class="pt">Check a Product</h2>
-<p class="sub">Search by product name, NAFDAC registration number (NRN), active ingredient or manufacturer. Results come from NAFDAC's recalls and alerts and a copy of the NAFDAC Greenbook register.</p>
-<div class="sbox" id="vbox"><input id="vq" placeholder="e.g. milk, Augmentin, A8-102274" onkeydown="if(event.key==='Enter')verifySearch($('vq').value)"><button class="sbtn" id="vbtn" onclick="verifySearch($('vq').value)" aria-label="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></div>
-<div class="sbar" id="vbar"><span class="ring"></span><small>Scanning NAFDAC alerts and registrations…</small></div>
-<div class="filters"><div class="flabel">Search in</div><div class="chips" id="fField"></div><div class="flabel">Status</div><div class="chips" id="fStatus"></div><select id="fCat" class="fsel" onchange="setF('category',this.value)"><option value="">All categories</option></select></div>
-<p class="hint">Tip: type an NRN exactly as printed on the pack, with or without the hyphen.</p>
+<section class="results" id="results" hidden><div class="wrap rw">
+<div id="vbar"><div class="skel"></div><div class="skel"></div></div>
 <div id="vout"></div>
-</main></section>
+</div></section>
 
-<section class="page" id="p-banned" style="display:none"><main class="container">
-<h2 class="pt">Banned Products</h2>
-<p class="sub">Recalls, bans, blacklists and counterfeit alerts, loaded from NAFDAC's <a href="https://nafdac.gov.ng/category/recalls-and-alerts/" target="_blank" rel="noopener">Recalls and Safety Alerts</a> page. Tap a notice to read the official alert.</p>
-<div class="sbox"><input id="bq" placeholder="Filter by product or company..." oninput="shown=20;renderBanned()"></div>
-<div class="chips" id="chips"></div>
+<section class="block" id="how"><div class="wrap">
+<h2 class="stitle">Three steps to peace of mind</h2><p class="ssub">Fake and unregistered products are common. A quick check takes seconds.</p>
+<div class="steps">
+<div class="step"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></div><h3>1. Search</h3><p>Type a product name or the NRN printed on the pack. Filters narrow it by ingredient, maker or status.</p></div>
+<div class="step"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div><h3>2. Check the status</h3><p>See whether the registration is Active, plus any NAFDAC recall, ban or counterfeit alert that mentions it.</p></div>
+<div class="step"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg></div><h3>3. Report it</h3><p>Spotted something suspicious? Send a report in a minute. No account needed.</p></div>
+</div></div></section>
+
+<section class="block soft" id="banned"><div class="wrap">
+<div class="shead"><div><h2 class="stitle">Latest NAFDAC alerts</h2><p class="ssub">Recalls, bans and counterfeit warnings, straight from NAFDAC.</p></div><input class="mini" id="bq" placeholder="Filter alerts…" oninput="shown=6;renderBanned()" aria-label="Filter alerts"></div>
+<div class="chips" id="chips" style="margin-bottom:16px"></div>
 <div class="status" id="status"></div>
 <div id="blist" class="list"></div>
-<div style="text-align:center"><button class="secondary-btn" id="more" onclick="shown+=20;renderBanned()">Show more</button> <button class="secondary-btn" onclick="refreshNaf()">↻ Refresh from NAFDAC</button></div>
-<p class="hint" style="text-align:center;margin-top:14px">Category labels are worked out automatically from each notice's title. The official classification is on NAFDAC's page.</p>
-</main></section>
+<div class="center"><button class="secondary-btn" id="more" onclick="shown+=6;renderBanned()">Show more</button><button class="secondary-btn" onclick="refreshNaf()">↻ Refresh</button></div>
+</div></section>
 
-<section class="page" id="p-blog" style="display:none"><main class="container" style="max-width:760px">
-<h2 class="pt">Blog</h2>
-<p class="sub">Plain-English explainers based on NAFDAC public alerts. Each summary is written by ChecknVerify and links to the official notice, which has the full details.</p>
+<section class="block" id="report"><div class="wrap split">
+<div>
+<h2 class="stitle">See something suspicious?</h2>
+<p class="ssub">Tell us about a product that looks fake, banned or unsafe. Reports are reviewed by our team and are never published automatically.</p>
+<div class="contact">
+<div><b>Urgent? Call NAFDAC</b>0800-1-NAFDAC (0800-1-623322)</div>
+<div><b>Email NAFDAC</b>sf.alert@nafdac.gov.ng</div>
+<div><b>Or use the app</b>NAFDAC Med Safety (Android and iOS)</div>
+</div>
+<p class="hint" style="margin-top:18px">ChecknVerify is independent and not an official NAFDAC channel. If you feel unwell, get medical care first.</p>
+</div>
+<div>
+<div class="card" id="formCard"><form onsubmit="submitReport(event)">
+<div class="form-group"><label for="rProduct">Product name *</label><input id="rProduct" required maxlength="150" placeholder="e.g. Peak Milk 400g"></div>
+<div class="row"><div class="form-group"><label for="rCategory">Category *</label><select id="rCategory" required><option value="">Select</option><option>Food</option><option>Medicine</option><option>Beverage</option><option>Cosmetics</option><option>Other</option></select></div>
+<div class="form-group"><label for="rLocation">Where was it bought? *</label><input id="rLocation" required maxlength="200" placeholder="Shop, market, online seller…"></div></div>
+<div class="form-group"><label for="rDetails">What looks wrong? *</label><textarea id="rDetails" required maxlength="2000" placeholder="Packaging, taste, smell, side effects, price…"></textarea></div>
+<div class="form-group"><label for="rPhoto">Photo (optional, max 5 MB)</label><input type="file" id="rPhoto" accept="image/jpeg,image/png,image/webp"><div class="hint">Photos can contain location data. Share only what you are comfortable with.</div></div>
+<details class="more"><summary>Add more details (optional)</summary>
+<div class="row"><div class="form-group"><label for="rBatch">Batch / lot number</label><input id="rBatch" maxlength="80"></div><div class="form-group"><label for="rExpiry">Expiry date on pack</label><input id="rExpiry" type="date"></div></div>
+<div class="row"><div class="form-group"><label for="rNaf">NAFDAC number (NRN) on pack</label><input id="rNaf" maxlength="40"></div><div class="form-group"><label for="rSeller">Seller name</label><input id="rSeller" maxlength="150"></div></div>
+<div class="form-group"><label>Contact me (only if you want a follow-up)</label><input id="rName" maxlength="100" placeholder="Name" style="margin-bottom:8px"><div class="row"><input id="rPhone" maxlength="20" placeholder="Phone" style="margin-bottom:8px"><input id="rEmail" type="email" maxlength="120" placeholder="Email" style="margin-bottom:8px"></div></div>
+</details>
+<input class="hp" id="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+<button class="primary-btn" id="sendBtn">Submit report</button>
+</form></div>
+<div class="card" id="done"><div class="ic">✅</div><h3 style="margin:8px 0 4px">Report received</h3><p class="hint">Your reference</p><p style="font-size:22px;font-weight:800;color:var(--brand)" id="refOut"></p><p class="hint" style="margin-top:12px" id="doneNote"></p><button class="secondary-btn" style="margin-top:16px" onclick="newReport()">Report another product</button></div>
+</div>
+</div></section>
 
-<details class="post" open><summary><div class="meta"><span class="badge b-cf">Counterfeit alert</span><span>19 Aug 2026 · Public Alert 041/2026</span></div><h3>Fake toothpaste, one letter apart: ORACIRE+ vs ORACARE+</h3><p class="lead">NAFDAC warned about a suspected counterfeit toothpaste sold under a name almost identical to a registered brand.</p><span class="more">Read more ↓</span></summary>
+<section class="block soft" id="faq"><div class="wrap">
+<h2 class="stitle">Questions, answered</h2><p class="ssub">How to spot a fake, what the status means, and how to report.</p>
+<div class="faqgrid">
+<details><summary>1. Look for a NAFDAC registration number (NRN)</summary><p>Registered products sold in Nigeria should carry a NAFDAC number. If there is none, do not buy it. A number alone is not proof: counterfeiters can copy real numbers, so go to step 2.</p></details>
+<details><summary>2. Verify the NRN and its status on the Greenbook</summary><p>Search the number or product name at <a href="https://greenbook.nafdac.gov.ng" target="_blank" rel="noopener">greenbook.nafdac.gov.ng</a>. Check that the <strong>product name, manufacturer and strength</strong> match your pack, and look at the <strong>Status</strong> column. If the status is anything other than Active (for example Expired), the registration is not currently active, so ask the seller and check with NAFDAC. If you cannot find a product, it may not be in the copy of the register yet, so search the Greenbook directly or ask NAFDAC.</p></details>
+<details><summary>3. Inspect the packaging closely</summary><ul><li>Spelling mistakes, blurry logos or colours that look off</li><li>Uneven or broken seals, loose caps, glue marks</li><li>Batch number and expiry date missing, smudged, or stamped on afterwards</li><li>Labels that peel or differ from a pack you know is genuine</li></ul></details>
+<details><summary>5. Be careful where you buy</summary><p>Prefer licensed pharmacies and established shops. Be cautious with street hawkers, unlabelled repackaged goods, and social-media sellers, especially for medicines. Prices far below normal are a warning sign.</p></details>
+<details><summary>Does "not listed" mean a product is genuine?</summary><p>No. Alerts only cover products that have been reported and published. A product that is not on the list can still be fake or unregistered, so always do the Greenbook check.</p></details>
+<details><summary>What should I do if I think a product is fake?</summary><ul><li>Stop using it, and seek medical help first if you feel unwell.</li><li>Keep the product, packaging and receipt. Do not throw them away.</li><li>Take clear photos: front, back, batch/expiry area and the NAFDAC number.</li><li>Note where, when and from whom you bought it.</li><li>Report it on our <a href="#report">Report a Product</a> page, and also contact NAFDAC directly (below).</li></ul></details>
+<details><summary>How do I report to NAFDAC?</summary><p>NAFDAC's website lists a complaints line: <strong>0800-1-NAFDAC (0800-1-623322)</strong>, and an enquiries line: 0700-1-NAFDAC (0700-1-623322). In its recent alerts NAFDAC also asks people to email <strong>sf.alert@nafdac.gov.ng</strong>, to use its <strong>Med Safety app</strong> (Android and iOS), or to visit the nearest NAFDAC office. The Greenbook also links NAFDAC's <a href="https://nafdac.medsafety.io/" target="_blank" rel="noopener">Report SF</a> (substandard and falsified products) form and an adverse drug reaction form. Contact page: <a href="https://nafdac.gov.ng/about-nafdac/contact-nafdac/" target="_blank" rel="noopener">nafdac.gov.ng</a>.</p></details>
+<details><summary>Is ChecknVerify part of NAFDAC?</summary><p>No. ChecknVerify is an independent tool. Alerts and registration details come from NAFDAC's public pages, and each alert links to the official notice.</p></details>
+</div>
+<h3 class="subh">Real NAFDAC alerts, explained</h3>
+<div class="faqgrid">
+<details class="post"><summary><div class="meta"><span class="badge b-cf">Counterfeit alert</span><span>19 Aug 2026 · Public Alert 041/2026</span></div><h3>Fake toothpaste, one letter apart: ORACIRE+ vs ORACARE+</h3><p class="lead">NAFDAC warned about a suspected counterfeit toothpaste sold under a name almost identical to a registered brand.</p><span class="more">Read more ↓</span></summary>
 <div class="body"><p>NAFDAC says a toothpaste called <strong>ORACIRE+</strong> is circulating in Nigeria under the guise of the registered <strong>ORACARE+</strong>. The alert followed a formal complaint and a market intelligence report. NAFDAC states that the origin, composition, safety and quality of the suspected counterfeit have not been verified, so nobody can say what is in the tube.</p>
 <p>The alert is about the look-alike product only. It does not say the registered ORACARE+ is fake or unsafe.</p>
-<p><strong>What to take from it</strong></p><ul><li>Read brand names letter by letter. One changed vowel can be the whole difference.</li><li>Compare the pack with a tube you know is genuine, and check the NAFDAC number on the Check tab.</li><li>If you find the look-alike, keep it and report it (see the FAQ for NAFDAC's reporting channels).</li></ul>
+<p><strong>What to take from it</strong></p><ul><li>Read brand names letter by letter. One changed vowel can be the whole difference.</li><li>Compare the pack with a tube you know is genuine, and check the NAFDAC number in the search box at the top of this page.</li><li>If you find the look-alike, keep it and report it (see the FAQ for NAFDAC's reporting channels).</li></ul>
 <p class="src">Source: <a href="https://nafdac.gov.ng/public-alert-no-041-2026-alert-on-suspected-counterfeit-oracire-toothpaste/" target="_blank" rel="noopener">NAFDAC Public Alert No. 041/2026</a></p></div></details>
-
 <details class="post"><summary><div class="meta"><span class="badge b-cf">Falsified medicine</span><span>19 Aug 2026 · Public Alert 042/2026</span></div><h3>A registration number that doesn't exist: the Kano antimalarial seizure</h3><p class="lead">A seized malaria medicine carried a NAFDAC number that NAFDAC says is fake.</p><span class="more">Read more ↓</span></summary>
 <div class="body"><p>NAFDAC announced the seizure of suspected falsified <strong>Artemether/Lumefantrine 80mg/480mg</strong>, purportedly made by Bandaram Pharma Packleh Ltd (BPPL), India. The alert lists the registration number on the pack as <strong>02-3457 (fake)</strong> and classifies the product as a Falsified (F) medical product. Press reports say it was intercepted during routine surveillance at a wholesale centre in Kano.</p>
 <p>NAFDAC warns that falsified antimalarials can lead to treatment failure, a worsening illness and drug resistance.</p>
 <p><strong>What to take from it</strong></p><ul><li>A number printed on a box proves nothing by itself. Look it up, and make sure the product name, manufacturer and strength match the record.</li><li>Buy medicines only from licensed pharmacies.</li><li>Report suspected sales to the nearest NAFDAC office.</li></ul>
 <p class="src">Source: <a href="https://nafdac.gov.ng/public-alert-no-042-2026-alert-on-the-seizure-of-suspected-substandard-and-falsified-bppl-artemether-lumefantrine-80mg-480mg/" target="_blank" rel="noopener">NAFDAC Public Alert No. 042/2026</a></p></div></details>
-
 <details class="post"><summary><div class="meta"><span class="badge b-su">Substandard batch</span><span>2025 · Updated Public Alert 030A/2025</span></div><h3>Registered, but a bad batch: the ARTEMETRIN DS alert</h3><p class="lead">A registered antimalarial can still have a batch that fails quality tests.</p><span class="more">Read more ↓</span></summary>
 <div class="body"><p>NAFDAC's updated alert describes <strong>ARTEMETRIN DS</strong> (Artemether/Lumefantrine 80mg/480mg), a registered product labelled as made by A.C. Drugs Ltd in Enugu. NAFDAC reports that batch <strong>Q011G</strong> (manufactured 07/23, expiry 06/25) contained only 59.2% of the stated artemether and 71.2% of the stated lumefantrine, outside the expected range, and classed it as substandard.</p>
 <p>Too little active ingredient can cause treatment failure and contribute to drug resistance.</p>
 <p><strong>What to take from it</strong></p><ul><li>An Active registration shows the product is registered. It does not guarantee every batch.</li><li>Check the batch number and expiry date on your pack against any alert for that product.</li></ul>
 <p class="src">Source: <a href="https://nafdac.gov.ng/public-alert-no-030a-2025-sale-of-confirmed-substandard-artemetrin-ds-tablets/" target="_blank" rel="noopener">NAFDAC Updated Public Alert No. 030A/2025</a></p></div></details>
-
 <details class="post"><summary><div class="meta"><span class="badge b-sa">Guide</span><span>Evergreen</span></div><h3>How to read a NAFDAC alert in 60 seconds</h3><p class="lead">Six things to look for before you decide whether an alert affects you.</p><span class="more">Read more ↓</span></summary>
 <div class="body"><ul><li><strong>The exact product name.</strong> Look-alike names are common, and an alert may be about a copy rather than the real brand.</li><li><strong>The manufacturer and NAFDAC number on the alert.</strong> Compare both with your pack. Some alerts point out that the number shown on the fake does not exist.</li><li><strong>Batch numbers and dates.</strong> Many alerts cover specific batches only, not every pack of a brand.</li><li><strong>The classification.</strong> Counterfeit and falsified mean the product is not what it claims to be. Substandard means it fails quality standards. A recall means a manufacturer or regulator is pulling product back.</li><li><strong>What NAFDAC asks you to do.</strong> This is usually to stop using it, keep the pack, and report it.</li><li><strong>The date.</strong> Check whether the notice has been updated.</li></ul>
-<p>A brand appearing in an alert does not mean all of its products are unsafe, and a product missing from the alerts is not proven genuine. Use the Check tab to check the NRN and status too.</p>
+<p>A brand appearing in an alert does not mean all of its products are unsafe, and a product missing from the alerts is not proven genuine. Use the search box above to check the NRN and status too.</p>
 <p class="src">Browse all notices: <a href="https://nafdac.gov.ng/category/recalls-and-alerts/" target="_blank" rel="noopener">NAFDAC Recalls and Safety Alerts</a></p></div></details>
-</main></section>
+</div>
+</div></section>
+</main>
 
-<section class="page" id="p-report" style="display:none"><main class="container" style="max-width:640px">
-<h2 class="pt">Report a Suspicious Product</h2>
-<p class="sub">Anyone can report. No account needed. Reports are reviewed by the ChecknVerify team and are not published automatically.</p>
-<div class="notice" style="margin-top:0">ChecknVerify is not an official NAFDAC channel. For urgent safety concerns, also call NAFDAC's complaints line <strong>0800-1-NAFDAC (0800-1-623322)</strong> or email <strong>sf.alert@nafdac.gov.ng</strong>.</div>
-<div class="card" id="formCard"><form onsubmit="submitReport(event)">
-<div class="form-group"><label>Product name *</label><input id="rProduct" required maxlength="150" placeholder="e.g. Peak Milk 400g"></div>
-<div class="row"><div class="form-group"><label>Category *</label><select id="rCategory" required><option value="">Select category</option><option>Food</option><option>Medicine</option><option>Beverage</option><option>Cosmetics</option><option>Other</option></select></div>
-<div class="form-group"><label>Batch / lot number</label><input id="rBatch" maxlength="80" placeholder="If available"></div></div>
-<div class="row"><div class="form-group"><label>Expiry date</label><input id="rExpiry" type="date"></div>
-<div class="form-group"><label>NAFDAC number (NRN) on pack</label><input id="rNaf" maxlength="40" placeholder="If any"></div></div>
-<div class="form-group"><label>Where was it bought? *</label><input id="rLocation" required maxlength="200" placeholder="Shop, market, pharmacy, online seller, area/city"></div>
-<div class="form-group"><label>Seller name</label><input id="rSeller" maxlength="150" placeholder="If known"></div>
-<div class="form-group"><label>Why do you think it is fake or unsafe? *</label><textarea id="rDetails" required maxlength="2000" placeholder="Describe what looks wrong: packaging, taste, smell, side effects, price..."></textarea></div>
-<div class="form-group"><label>Photo (optional, max 5 MB)</label><input type="file" id="rPhoto" accept="image/jpeg,image/png,image/webp"><div class="hint">Front, back, and the batch/expiry area help most. Photos can contain location data, so share only what you are comfortable with.</div></div>
-<div class="form-group"><label>Contact (optional, only if you want us to follow up)</label><input id="rName" maxlength="100" placeholder="Name" style="margin-bottom:8px"><div class="row"><input id="rPhone" maxlength="20" placeholder="Phone" style="margin-bottom:8px"><input id="rEmail" type="email" maxlength="120" placeholder="Email" style="margin-bottom:8px"></div></div>
-<input class="hp" id="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-<button class="primary-btn" id="sendBtn">Submit report</button>
-</form></div>
-<div class="card" id="done"><div class="ic">✅</div><h2 class="pt" style="margin-top:8px">Report received</h2><p class="sub">Your reference is</p><p style="font-size:22px;font-weight:bold" class="grad" id="refOut"></p><p class="sub" style="margin-top:12px" id="doneNote"></p><button class="secondary-btn" onclick="newReport()">Report another product</button></div>
-</main></section>
-
-<section class="page" id="p-faq" style="display:none"><main class="container" style="max-width:760px">
-<h2 class="pt">FAQ: Spotting Counterfeits and Reporting</h2>
-<p class="sub">Practical checks before you buy or use a product. You can also ask the assistant (🤖, bottom right).</p>
-<div class="section-title"><h2>How to spot a counterfeit</h2></div>
-<details open><summary>1. Look for a NAFDAC registration number (NRN)</summary><p>Registered products sold in Nigeria should carry a NAFDAC number. If there is none, do not buy it. A number alone is not proof: counterfeiters can copy real numbers, so go to step 2.</p></details>
-<details><summary>2. Verify the NRN and its status on the Greenbook</summary><p>Search the number or product name at <a href="https://greenbook.nafdac.gov.ng" target="_blank" rel="noopener">greenbook.nafdac.gov.ng</a>. Check that the <strong>product name, manufacturer and strength</strong> match your pack, and look at the <strong>Status</strong> column. If the status is anything other than Active (for example Expired), the registration is not currently active, so ask the seller and check with NAFDAC. If you cannot find a product, it may not be in the copy of the register yet, so search the Greenbook directly or ask NAFDAC.</p></details>
-<details><summary>3. Inspect the packaging closely</summary><ul><li>Spelling mistakes, blurry logos or colours that look off</li><li>Uneven or broken seals, loose caps, glue marks</li><li>Batch number and expiry date missing, smudged, or stamped on afterwards</li><li>Labels that peel or differ from a pack you know is genuine</li></ul></details>
-<details><summary>4. Check the batch against official alerts</summary><p>NAFDAC alerts often name specific brands, batch numbers and manufacturers. Search the product on the <a href="#banned">Banned Products</a> page and read the full notice for what to look for.</p></details>
-<details><summary>5. Be careful where you buy</summary><p>Prefer licensed pharmacies and established shops. Be cautious with street hawkers, unlabelled repackaged goods, and social-media sellers, especially for medicines. Prices far below normal are a warning sign.</p></details>
-<details><summary>6. Compare with a genuine product</summary><p>If you can, compare weight, smell, colour, texture and taste with a pack you trust. If something is different, or you feel unwell after using it, stop and keep the pack.</p></details>
-<details><summary>Does "not listed" mean a product is genuine?</summary><p>No. Alerts only cover products that have been reported and published. A product that is not on the list can still be fake or unregistered, so always do the Greenbook check.</p></details>
-<div class="section-title"><h2>Reporting a suspicious product</h2></div>
-<details open><summary>What should I do if I think a product is fake?</summary><ul><li>Stop using it, and seek medical help first if you feel unwell.</li><li>Keep the product, packaging and receipt. Do not throw them away.</li><li>Take clear photos: front, back, batch/expiry area and the NAFDAC number.</li><li>Note where, when and from whom you bought it.</li><li>Report it on our <a href="#report">Report a Product</a> page, and also contact NAFDAC directly (below).</li></ul></details>
-<details><summary>How do I report to NAFDAC?</summary><p>NAFDAC's website lists a complaints line: <strong>0800-1-NAFDAC (0800-1-623322)</strong>, and an enquiries line: 0700-1-NAFDAC (0700-1-623322). In its recent alerts NAFDAC also asks people to email <strong>sf.alert@nafdac.gov.ng</strong>, to use its <strong>Med Safety app</strong> (Android and iOS), or to visit the nearest NAFDAC office. The Greenbook also links NAFDAC's <a href="https://nafdac.medsafety.io/" target="_blank" rel="noopener">Report SF</a> (substandard and falsified products) form and an adverse drug reaction form. Contact page: <a href="https://nafdac.gov.ng/about-nafdac/contact-nafdac/" target="_blank" rel="noopener">nafdac.gov.ng</a>.</p></details>
-<details><summary>Do I need an account to report here?</summary><p>No. Anyone can send a report. Contact details are optional and only used if the team needs to follow up.</p></details>
-<details><summary>What happens to my report?</summary><p>It is saved privately and reviewed by the ChecknVerify team. It is not published automatically, and a report alone does not make a product "counterfeit". Official confirmation comes from NAFDAC.</p></details>
-<details><summary>Is ChecknVerify part of NAFDAC?</summary><p>No. ChecknVerify is an independent tool. Alerts and registration details come from NAFDAC's public pages, and each alert links to the official notice.</p></details>
-</main></section>
-
-<footer>
-ChecknVerify © 2026 · Data from <a href="https://nafdac.gov.ng/category/recalls-and-alerts/" target="_blank" rel="noopener">NAFDAC</a><br>
-<a href="#home">Home</a> · <a href="#verify">Check</a> · <a href="#banned">Banned Products</a> · <a href="#blog">Blog</a> · <a href="#report">Report a Product</a> · <a href="#faq">FAQ</a><br>
-A product not listed as an alert is not automatically certified as genuine.
-</footer>
+<footer><div class="wrap fgrid">
+<div><a class="brand" href="#top" style="font-size:17px"><svg id="logoSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb36b"/><stop offset="1" stop-color="#e5590b"/></linearGradient></defs><path d="M32 2 58 12v18c0 16-11 27-26 32C17 57 6 46 6 30V12z" fill="url(#lg)"/><path d="M32 8 52 16v14c0 12-8 22-20 26C20 52 12 42 12 30V16z" fill="#1b1b1f"/><circle cx="29" cy="27" r="10" fill="none" stroke="#fff" stroke-width="4"/><path d="M36 34 44 42" stroke="url(#lg)" stroke-width="6" stroke-linecap="round"/><path d="M24 27.5 27.5 31 34 23.5" fill="none" stroke="#ff8a3d" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Checkn<b>Verify</b></span></a><p>An independent tool that helps you check products against NAFDAC's public alerts and register. A product not listed as an alert is not automatically certified as genuine. Not affiliated with NAFDAC.</p></div>
+<div><a href="#check">Check</a><a href="#banned">Alerts</a><a href="#report">Report</a><a href="#faq">FAQ</a><p>Data from <a href="https://nafdac.gov.ng/category/recalls-and-alerts/" target="_blank" rel="noopener" style="margin:0">NAFDAC</a> © 2026</p></div>
+</div></footer>
 
 <div class="modal" id="rm"><div class="mc">
 <span class="close" onclick="closeModal()">&times;</span>
@@ -403,6 +289,7 @@ const $=id=>document.getElementById(id);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const MAG='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
+const BTN=MAG+'<span class="gl">Search</span>';
 const NAF="https://nafdac.gov.ng",GB="https://greenbook.nafdac.gov.ng";
 $("fav").href="data:image/svg+xml,"+encodeURIComponent($("logoSvg").outerHTML);
 
@@ -442,7 +329,7 @@ if(a.length<100)break;
 }
 return out;
 }
-let items=[],src="snapshot",loading=null,shown=20,filt="All";
+let items=[],src="snapshot",loading=null,shown=6,filt="All";
 function setStatus(t,warn){const s=$("status");s.className="status"+(warn?" warn":"");s.innerHTML=t}
 function loadNaf(){
 if(loading)return loading;
@@ -460,9 +347,9 @@ setStatus("⚠️ Could not reach NAFDAC from this browser, so this is a "+(src=
 return loading;
 }
 function refreshNaf(){loading=null;loadNaf()}
-function renderAll(){$("latest").innerHTML=items.slice(0,3).map(itemHtml).join("");renderBanned();renderDash()}
+function renderAll(){renderBanned();renderDash()}
 function renderBanned(){
-$("chips").innerHTML=["All",...KINDS].map(k=>`<button class="chip ${k===filt?"on":""}" onclick="filt='${k}';shown=20;renderBanned()">${k}</button>`).join("");
+$("chips").innerHTML=["All",...KINDS].map(k=>`<button class="chip ${k===filt?"on":""}" onclick="filt='${k}';shown=6;renderBanned()">${k}</button>`).join("");
 const w=$("bq").value.toLowerCase().split(/\s+/).filter(Boolean);
 const list=items.filter(x=>(filt==="All"||kind(x.title)===filt)&&w.every(s=>x.title.toLowerCase().includes(s)));
 $("blist").innerHTML=list.slice(0,shown).map(itemHtml).join("")||'<div class="card">No matching notices.</div>';
@@ -539,21 +426,25 @@ try{const {data,error}=await sb.rpc("greenbook_categories");if(error)throw error
 $("fCat").innerHTML='<option value="">All categories</option>'+data.slice(0,80).map(c=>`<option value="${esc(c.category)}">${esc(c.category)} (${(+c.n).toLocaleString()})</option>`).join("")}catch(e){}
 }
 const hitsFor=q=>{const w=q.toLowerCase().split(/\s+/).filter(Boolean);return items.filter(x=>w.every(s=>x.title.toLowerCase().includes(s)))};
-function trySearch(t){$("q").value=t;homeSearch()}
-function homeSearch(){const q=$("q").value.trim();if(q.length<2)return;location.hash="#verify?q="+encodeURIComponent(q);$("q").value=""}
+function trySearch(t){$("vq").value=t;verifySearch(t)}
+function checkFor(q){$("vq").value=q;verifySearch(q)}
+function go(h){const m=h.match(/^#verify\?q=(.*)$/);if(m){checkFor(decodeURIComponent(m[1]));return}const el=document.querySelector(h);if(el)el.scrollIntoView({behavior:"smooth"})}
+function homeSearch(){verifySearch($("vq").value)}
+function clearResults(){$("results").hidden=true;vs.q="";$("vq").focus();window.scrollTo({top:0,behavior:"smooth"})}
+function toggleFilters(){const f=$("filters");f.hidden=!f.hidden;$("ftBtn").setAttribute("aria-expanded",String(!f.hidden))}
 async function verifySearch(q,quiet){
 q=(q||"").trim();const browse=q.length<2&&(vf.status!=="all"||vf.category!=="");if(q.length<2&&!browse)return;
-$("vq").value=q;history.replaceState(null,"","#verify?q="+encodeURIComponent(q));
+$("vq").value=q;$("results").hidden=false;$("results").scrollIntoView({behavior:"smooth",block:"start"});
 vs.q=q;$("vout").innerHTML="";
-$("vbox").classList.add("busy");$("vbtn").innerHTML='<span class="spin"></span>';$("vbar").style.display="flex";
+$("vbox").classList.add("busy");$("vbtn").innerHTML='<span class="spin"></span>';$("vbar").style.display="block";
 try{
 const [,reg]=await Promise.all([loadNaf(),greenbookSearch(q,0,vf),sleep(900)]);
 Object.assign(vs,{hits:hitsFor(q),reg,rows:reg.rows||[],matches:reg.matches||0,activeN:reg.activeN||0});
 vs.off=vs.rows.length;
 renderVerify(0);
 $("vq").value="";
-if(vs.hits.length&&!quiet)openAlert(vs.hits,q);
-}finally{$("vbox").classList.remove("busy");$("vbtn").innerHTML=MAG;$("vbar").style.display="none"}
+if(!quiet&&vs.hits.some(x=>[KINDS[0],KINDS[1]].includes(kind(x.title))))openAlert(vs.hits,q);
+}finally{$("vbox").classList.remove("busy");$("vbtn").innerHTML=BTN;$("vbar").style.display="none"}
 }
 async function verifyMore(){
 const from=vs.rows.length,reg=await greenbookSearch(vs.q,vs.off,vf);
@@ -568,7 +459,7 @@ else if(reg.err)msg=`The registry lookup failed${reg.msg?" ("+esc(reg.msg)+")":"
 else if(reg.empty)msg=`The registry copy in your database is empty. Run the Greenbook sync (ingest-greenbook.mjs).`;
 else if(!vs.matches)msg=`No matching registry record found. <strong>That does not mean it is genuine.</strong> ${vf.field!=="all"||vf.status!=="all"||vf.category?"Try clearing the filters. ":""}This copy may not include every product, so also search the <a href="${GB}" target="_blank" rel="noopener">Greenbook</a> directly.`;
 const lbl=q?`for “${esc(q)}”`:`in ${vf.status==="active"?"Active":vf.status==="inactive"?"Not active":""} ${vf.category?esc(vf.category):"products"}`;
-let h=`<div class="vmeta">${vs.matches?`<strong>${vs.matches.toLocaleString()} matching record${vs.matches>1?"s":""}</strong> ${lbl} · ${vs.activeN.toLocaleString()} Active`:`Results ${lbl}`}</div>`;
+let h=`<div class="vmeta"><span>${vs.matches?`<strong>${vs.matches.toLocaleString()} matching record${vs.matches>1?"s":""}</strong> ${lbl} · ${vs.activeN.toLocaleString()} Active`:`Results ${lbl}`}</span><button class="linkbtn" onclick="clearResults()">Clear results</button></div>`;
 if(msg)h+=`<div class="notice" style="margin-top:8px">${msg}</div>`;
 if(vs.hits.length)h+=`<h4 class="sec">NAFDAC alerts (${vs.hits.length})</h4><div class="list">${vs.hits.slice(0,6).map(itemHtml).join("")}</div>`;
 if(rows.length)h+=`<h4 class="sec">Registered products</h4><div class="list one">${rows.map((r,i)=>recCard(r,i,from)).join("")}</div>`;
@@ -628,17 +519,17 @@ const KB=[
 K([/check|verify|look ?up|search/i,/product|something|item/i],"Sure. Type the product name or an NRN from the pack here, for example “Peak Milk”, and I'll check NAFDAC alerts and the register for it.",[]),
 K([/spot|identify|detect|tell|recogni|know if|how (can|do) i know|signs/i,/fake|counterfeit|original|genuine|authentic/i],"To spot a fake: 1) find the NRN on the pack and look it up, and make sure the status is Active; 2) check the name, manufacturer and strength match; 3) inspect printing, seals, batch and expiry; 4) compare with a genuine pack; 5) buy from licensed outlets. A real NRN can be copied onto a fake pack, so step 2 matters.",[...NRNQ,...REPORT_CHIPS]),
 K([/what('?s| is)|meaning|stands/i,/\bnrn\b|nafdac (reg|number|no)/i],"NRN is the NAFDAC Registration Number printed on registered products. Looking it up shows the product name, manufacturer, strength and whether the registration is Active.",[...NRNQ,"What does Active mean?"]),
-K([/verify|check|confirm|look ?up|search|validate/i,/nrn|nafdac|registration|number|greenbook/i],"Type the NRN or product name in the search box on the Home or Check tab, or right here in the chat, and I'll show matching records with their status. For the official record, confirm on greenbook.nafdac.gov.ng.",["What does Active mean?",...SPOT]),
-K([/expir|expiry|valid until|renew|how long/i,/nrn|regist|nafdac|product/i],"The Check tab shows each registration's status and, when the register provides one, its expiry date. A registration's expiry is different from the expiry date printed on the pack, so always check the pack's date too and be wary of re-stamped dates.",[...NRNQ]),
+K([/verify|check|confirm|look ?up|search|validate/i,/nrn|nafdac|registration|number|greenbook/i],"Type the NRN or product name in the search box at the top of this page, or right here in the chat, and I'll show matching records with their status. For the official record, confirm on greenbook.nafdac.gov.ng.",["What does Active mean?",...SPOT]),
+K([/expir|expiry|valid until|renew|how long/i,/nrn|regist|nafdac|product/i],"Search results show each registration's status and, when the register provides one, its expiry date. A registration's expiry is different from the expiry date printed on the pack, so always check the pack's date too and be wary of re-stamped dates.",[...NRNQ]),
 K([/\b(active|expired|inactive)\b/i,/mean|status|regist|nrn|valid|what/i],"Active means the registration is currently valid. Anything else, such as Expired, means it isn't currently active, so ask the seller why and check with NAFDAC. Even Active doesn't prove your pack is genuine.",[...SPOT,...REPORT_CHIPS]),
-K([/report|complain|call|contact|hotline|email|phone|reach/i,/nafdac|fake|counterfeit|product|seller|pharmacy|suspicious/i],"Keep the product, packaging and receipt and take photos, then use the Report tab. Also tell NAFDAC: call 0800-1-NAFDAC (0800-1-623322), email sf.alert@nafdac.gov.ng, or use the NAFDAC Med Safety app. If you feel unwell, get medical care first.",[{label:"Open Report tab",href:"#report"},...SPOT]),
-K([/bought|purchased|took|taking|used|using|consumed|ate|drank|gave/i,/fake|counterfeit|expired|bad|suspicious|substandard/i],"Stop using it, and get medical care straight away if you feel unwell. Keep the product, packaging and receipt, take photos, and report it on the Report tab and to NAFDAC (0800-1-NAFDAC).",[{label:"Open Report tab",href:"#report"}]),
+K([/report|complain|call|contact|hotline|email|phone|reach/i,/nafdac|fake|counterfeit|product|seller|pharmacy|suspicious/i],"Keep the product, packaging and receipt and take photos, then use the Report form. Also tell NAFDAC: call 0800-1-NAFDAC (0800-1-623322), email sf.alert@nafdac.gov.ng, or use the NAFDAC Med Safety app. If you feel unwell, get medical care first.",[{label:"Go to report form",href:"#report"},...SPOT]),
+K([/bought|purchased|took|taking|used|using|consumed|ate|drank|gave/i,/fake|counterfeit|expired|bad|suspicious|substandard/i],"Stop using it, and get medical care straight away if you feel unwell. Keep the product, packaging and receipt, take photos, and report it on the Report form and to NAFDAC (0800-1-NAFDAC).",[{label:"Go to report form",href:"#report"}]),
 K([/difference|differ|vs|versus|meaning|mean/i,/counterfeit|falsified|substandard|unregistered/i],"Counterfeit and falsified products pretend to be something they are not. Substandard products fail quality standards. Unregistered products have no NAFDAC registration. A recall pulls a product back from the market. NAFDAC's notices use these terms, so read them closely.",[...SPOT]),
-K([/banned|ban\b|blacklist|recall|watchlist/i,/what|how|where|list|see|find/i],"Banned, blacklisted, recalled and counterfeit notices from NAFDAC are on the Banned Products tab. Tap one to read the official alert. You can also type a product name here and I'll search them.",[{label:"Open Banned Products",href:"#banned"}]),
+K([/banned|ban\b|blacklist|recall|watchlist/i,/what|how|where|list|see|find/i],"Banned, blacklisted, recalled and counterfeit notices from NAFDAC are in the Alerts section of this page. Tap one to read the official alert. You can also type a product name here and I'll search them.",[{label:"See all alerts",href:"#banned"}]),
 K([/where|which|safe place|best place/i,/buy|purchase|shop/i],"Buy from licensed pharmacies and established shops, keep your receipt, and check the NRN before you pay. Be wary of hawkers, unlabelled repacked goods and prices far below normal.",[...NRNQ]),
-K([/online|whatsapp|instagram|facebook|jumia|social|website|seller|vendor|hawker/i],"Online and social-media sellers are higher risk. Ask for the NRN and batch number and verify them before paying, avoid sellers who refuse, and prefer licensed pharmacies for medicines. Report suspicious sellers on the Report tab.",[...REPORT_CHIPS]),
+K([/online|whatsapp|instagram|facebook|jumia|social|website|seller|vendor|hawker/i],"Online and social-media sellers are higher risk. Ask for the NRN and batch number and verify them before paying, avoid sellers who refuse, and prefer licensed pharmacies for medicines. Report suspicious sellers on the Report form.",[...REPORT_CHIPS]),
 K([/risk|danger|harm|side effect|what happens|why/i,/fake|counterfeit|substandard/i],"Fake or substandard products can contain the wrong ingredients or too little of the active ingredient, which can cause treatment failure, poisoning or other harm. NAFDAC's malaria medicine alerts, for example, warn of treatment failure and drug resistance.",[...SPOT]),
-K([/service|agent|pharmacy|clinic|certificate|certification|scam|fraud|pay/i,/nafdac|fake|registration|verification/i],"Be careful with anyone who asks you to pay for NAFDAC registration or verification, especially to a personal account, or who pushes you to skip checks. Use NAFDAC's official channels (nafdac.gov.ng, 0800-1-NAFDAC) and report suspected scams on the Report tab.",[...REPORT_CHIPS]),
+K([/service|agent|pharmacy|clinic|certificate|certification|scam|fraud|pay/i,/nafdac|fake|registration|verification/i],"Be careful with anyone who asks you to pay for NAFDAC registration or verification, especially to a personal account, or who pushes you to skip checks. Use NAFDAC's official channels (nafdac.gov.ng, 0800-1-NAFDAC) and report suspected scams on the Report form.",[...REPORT_CHIPS]),
 K([/official|affiliated|part of|government|trust you|reliable|source|data come/i,/nafdac|you|site|app|data/i],"ChecknVerify is independent and not part of NAFDAC. Alerts and register data come from NAFDAC's public pages, and each alert links to the official notice.",[]),
 K([/batch|lot|expiry|expir|mfg|manufacture date/i],"Batch (lot) numbers and expiry dates matter because many NAFDAC alerts cover specific batches only. Compare the batch on your pack with the notice, and be suspicious of missing, smudged or re-stamped dates.",[...NRNQ]),
 K([/medicine|drug|tablet|syrup|injection|food|rice|milk|drink|beverage|cosmetic|cream|soap|toothpaste/i,/fake|counterfeit|genuine|safe|check|spot/i],q=>/medicine|drug|tablet|syrup|injection/i.test(q)?"Medicines: buy only from licensed pharmacies, check the NRN and its status, inspect seals and batch details, and don't use anything that looks, smells or tastes different.":/cosmetic|cream|soap|toothpaste/i.test(q)?"Cosmetics and toothpaste: check the NRN, the exact spelling of the brand (look-alike names are common), seals and print quality.":"Foods and drinks: check the NRN, seals, batch and expiry, compare the packaging with a pack you trust, and stop if the taste, smell or texture is off.",[...NRNQ,...REPORT_CHIPS])
@@ -678,7 +569,7 @@ function addChips(list){
 document.querySelectorAll("#msgs .qr").forEach(e=>e.remove());
 if(!list||!list.length)return;
 const d=document.createElement("div");d.className="qr";
-list.forEach(c=>{const o=typeof c==="string"?{label:c}:c,b=document.createElement("button");b.textContent=o.label;b.onclick=()=>{if(o.href){location.hash=o.href;if(innerWidth<700)toggleChat()}else sendChat(o.label)};d.appendChild(b)});
+list.forEach(c=>{const o=typeof c==="string"?{label:c}:c,b=document.createElement("button");b.textContent=o.label;b.onclick=()=>{if(o.href){go(o.href);if(innerWidth<700)toggleChat()}else sendChat(o.label)};d.appendChild(b)});
 $("msgs").appendChild(d);$("msgs").scrollTop=1e6;
 }
 function botSay(text,chips){
@@ -694,7 +585,7 @@ let lastSend=0,sentN=0,aiFails=0;
 async function sendChat(text){
 const t=(text||$("cin").value).trim();if(!t)return;
 if(Date.now()-lastSend<1200){addMsg("bot","One moment please…");return}
-if(sentN>=25){addMsg("bot","You have reached the chat limit for this visit. Please refresh the page, or use the FAQ and Check tabs.");return}
+if(sentN>=25){addMsg("bot","You have reached the chat limit for this visit. Please refresh the page, or use the FAQ and search boxs.");return}
 lastSend=Date.now();sentN++;$("cin").value="";
 document.querySelectorAll("#msgs .qr").forEach(e=>e.remove());
 addMsg("user",t);hist.push({role:"user",content:t.slice(0,500)});
@@ -750,17 +641,10 @@ $("refOut").innerText=ref;$("doneNote").innerText=note;
 $("formCard").style.display="none";$("done").style.display="block";e.target.reset();
 }finally{btn.disabled=false;btn.innerText="Submit report"}
 }
-function newReport(){$("done").style.display="none";$("formCard").style.display="block";window.scrollTo(0,0)}
+function newReport(){$("done").style.display="none";$("formCard").style.display="block";$("report").scrollIntoView({behavior:"smooth"})}
 
 /* ---------- page tabs ---------- */
-const PAGES=["home","verify","banned","blog","report","faq"];
-function route(){
-const [h,qs]=(location.hash||"#home").slice(1).split("?"),p=PAGES.includes(h)?h:"home";
-PAGES.forEach(x=>{$("p-"+x).style.display=x===p?"block":"none";document.querySelector(`.tab[data-p="${x}"]`).classList.toggle("on",x===p)});
-window.scrollTo(0,0);
-if(p==="verify"){loadCats();const q=new URLSearchParams(qs||"").get("q");if(q&&q!==vs.q){verifySearch(q)}}
-}
-window.addEventListener("hashchange",route);
+
 renderFilters();
 sb&&gbStats().then(st=>{renderDash();if(st&&st.total)$("homeSub").textContent=`Search ${st.total.toLocaleString()} NAFDAC-registered products by name or NRN and see whether they are Active.`});
 /* ---------- dashboard ---------- */
@@ -772,16 +656,16 @@ el.title=n.toLocaleString();
 if(matchMedia("(prefers-reduced-motion:reduce)").matches){el.textContent=fmtN(n);fitText(el);return}
 const t0=performance.now(),d=900,step=t=>{const p=Math.min(1,(t-t0)/d);el.textContent=fmtN(Math.round(n*(1-Math.pow(1-p,3))));if(p<1)requestAnimationFrame(step);else fitText(el)};requestAnimationFrame(step);
 }
-window.addEventListener("resize",()=>document.querySelectorAll(".tile b").forEach(fitText));
+window.addEventListener("resize",()=>document.querySelectorAll(".stat b").forEach(fitText));
 function renderDash(){
 const c={};KINDS.forEach(k=>c[k]=0);items.forEach(x=>c[kind(x.title)]++);
 const t=[];
 if(regStats&&regStats.total)t.push(["ok","Registered",regStats.total,"reg|all"],["ok","Active",regStats.active,"reg|active"],["off","Not active",regStats.total-regStats.active,"reg|inactive"]);
-t.push(["","NAFDAC alerts",items.length,"alert|All"],["cf","Counterfeit",c[KINDS[0]],"alert|"+KINDS[0]],["ban","Banned",c[KINDS[1]],"alert|"+KINDS[1]],["rc","Recalls",c[KINDS[2]],"alert|"+KINDS[2]],["su","Substandard",c[KINDS[3]],"alert|"+KINDS[3]]);
+t.push(["","Alerts",items.length,"alert|All"],["cf","Counterfeit",c[KINDS[0]],"alert|"+KINDS[0]],["ban","Banned",c[KINDS[1]],"alert|"+KINDS[1]]);
 const key=t.map(x=>x[2]).join(",");
 if(key!==dashKey){
 dashKey=key;
-$("dgrid").innerHTML=t.map(([cl,l,n,a])=>`<button class="tile ${cl}" data-a="${esc(a)}" onclick="dashGo(this)"><b data-n="${n}">0</b><span title="${esc(l)}">${esc(l)}</span></button>`).join("");
+$("dgrid").innerHTML=t.map(([cl,l,n,a])=>`<button class="stat ${cl}" data-a="${esc(a)}" onclick="dashGo(this)"><b data-n="${n}">0</b><span title="${esc(l)}">${esc(l)}</span></button>`).join("");
 $("dgrid").querySelectorAll("b").forEach(b=>countTo(b,+b.dataset.n));
 }
 const al=src==="live"?`${items.length} live NAFDAC notices`:src==="saved"?`${items.length} saved notices (live feed unreachable)`:`only ${items.length} sample notices (live NAFDAC feed unreachable)`;
@@ -789,26 +673,30 @@ $("dnote").textContent=(sb?(regStats&&regStats.total?"Register copy: "+regStats.
 }
 function dashGo(el){
 const [t,v]=el.dataset.a.split("|");
-if(t==="reg"){vf.status=v;vf.field="all";vf.category="";$("fCat").value="";renderFilters();location.hash="#verify";setTimeout(()=>verifySearch("",true),0)}
-else{filt=v;shown=20;$("bq").value="";location.hash="#banned";renderBanned()}
+if(t==="reg"){vf.status=v;vf.field="all";vf.category="";$("fCat").value="";renderFilters();verifySearch("",true)}
+else{filt=v;shown=6;$("bq").value="";renderBanned();$("banned").scrollIntoView({behavior:"smooth"})}
 }
-/* ---------- themes ---------- */
-const THEMES={dark:{meta:"#050505",a:["#d6ff5a","#9bd400","#b4f000"]},white:{meta:"#ffffff",a:["#ff9a3c","#e8590c","#ff8a1f"]},orange:{meta:"#eceef2",a:["#ff9a3c","#e8590c","#ff8a1f"]},sand:{meta:"#e2d9ce",a:["#d9a07a","#b9794f","#c58a63"]}};
+/* ---------- theme: light (default) or dark ---------- */
 function applyTheme(t,keep){
-if(!THEMES[t])t="white";
-document.documentElement.dataset.theme=t;if(keep!==false){try{localStorage.setItem("cnvTheme2",t)}catch(e){}}
-document.querySelector('meta[name="theme-color"]').content=THEMES[t].meta;
-const a=THEMES[t].a;$("lgA").setAttribute("stop-color",a[0]);$("lgB").setAttribute("stop-color",a[1]);$("lgC").setAttribute("stroke",a[2]);
+if(t!=="dark")t="light";
+document.documentElement.dataset.theme=t;
+if(keep!==false){try{localStorage.setItem("cnvTheme3",t)}catch(e){}}
+document.querySelector('meta[name="theme-color"]').content=t==="dark"?"#0e0f12":"#fbfaf8";
+$("themeBtn").textContent=t==="dark"?"☀":"☾";
 $("fav").href="data:image/svg+xml,"+encodeURIComponent($("logoSvg").outerHTML);
-document.querySelectorAll(".tmenu button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
-$("themeMenu").classList.remove("open");
 }
-function toggleThemeMenu(e){e.stopPropagation();$("themeMenu").classList.toggle("open")}
-document.addEventListener("click",e=>{if(!e.target.closest(".themebox"))$("themeMenu").classList.remove("open")});
-applyTheme(document.documentElement.dataset.theme||"white",false);
-function endSplash(){const sp=$("splash");if(!sp||sp.classList.contains("hide"))return;sp.classList.add("hide");document.body.classList.remove("loading");setTimeout(()=>sp.remove(),800)}
-(function(){const c=$("logoSvg").cloneNode(true);c.removeAttribute("id");c.querySelectorAll("[id]").forEach(e=>e.id+="2");c.innerHTML=c.innerHTML.replace(/#lg\b/g,"#lg2");$("spLogo").appendChild(c);setTimeout(endSplash,matchMedia("(prefers-reduced-motion:reduce)").matches?600:3000)})();
-route();loadNaf();
+function toggleTheme(){applyTheme(document.documentElement.dataset.theme==="dark"?"light":"dark")}
+applyTheme(document.documentElement.dataset.theme||"light",false);
+/* ---------- navigation ---------- */
+function toggleMenu(){$("mnav").classList.toggle("open")}
+function initNav(){
+document.querySelectorAll("#mnav a").forEach(a=>a.addEventListener("click",()=>$("mnav").classList.remove("open")));
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)document.querySelectorAll(".links a").forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#"+e.target.id))}),{rootMargin:"-45% 0px -50% 0px"});
+["check","banned","report","faq"].forEach(id=>io.observe($(id)));
+}
+function endSplash(fast){const sp=$("splash");if(!sp||sp.classList.contains("hide"))return;if(fast===true)sp.style.transition="none";sp.classList.add("hide");document.body.classList.remove("loading");setTimeout(()=>sp.remove(),fast===true?0:800)}
+(function(){const c=$("logoSvg").cloneNode(true);c.removeAttribute("id");c.querySelectorAll("[id]").forEach(e=>e.id+="2");c.innerHTML=c.innerHTML.replace(/#lg\b/g,"#lg2");$("spLogo").appendChild(c);try{if(sessionStorage.getItem("cnvSeen")){endSplash(true)}else{sessionStorage.setItem("cnvSeen","1");setTimeout(endSplash,matchMedia("(prefers-reduced-motion:reduce)").matches?600:3000)}}catch(e){setTimeout(endSplash,3000)}})();
+loadCats();loadNaf();initNav();
 </script>
 </body>
 </html>
