@@ -132,6 +132,9 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;font-size:13px;color
 .dots span{display:inline-block;width:7px;height:7px;margin:0 2px;border-radius:50%;background:var(--mut);animation:dot 1s infinite}.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
 @keyframes dot{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-4px);opacity:1}}
 .cin{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}.cin input{flex:1;border:1px solid var(--line);border-radius:999px;padding:10px 16px;background:var(--surface);outline:none;min-width:0}.cin input:focus{border-color:var(--brand)}.cin button{border:0;background:var(--brand);color:var(--on-brand);border-radius:50%;width:42px;cursor:pointer;font-weight:700}
+.m.bot{max-width:94%}.m ol{margin:10px 0 2px 22px;padding:0}.m li{margin:8px 0;line-height:1.4}.m li a{color:var(--brand);font-weight:600}.m li small{display:block;color:var(--mut);font-size:12px;margin-top:1px}
+.srcs{margin-top:10px;font-size:12px;color:var(--mut)}.srcs a{margin-right:10px;color:var(--brand)}
+.cin .mic{background:var(--surface2);color:var(--tx);border:1px solid var(--line)}.cin .mic.rec{background:#c62828;color:#fff;animation:pulse2 1s infinite}@keyframes pulse2{50%{opacity:.55}}
 .cnote{font-size:11px;color:var(--mut);text-align:center;padding:0 12px 10px}
 @media(max-width:520px){.chat{right:12px;left:12px;width:auto;max-width:none;bottom:84px;height:min(70vh,520px)}.fab{right:14px;bottom:16px}.mc{margin:20px auto;padding:22px}input,select,textarea{font-size:16px!important}}
 /* intro splash */
@@ -275,7 +278,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;font-size:13px;color
 <div class="chat" id="chat">
 <header><span>🤖 ChecknVerify Assistant</span><span class="close" style="position:static;font-size:22px" onclick="toggleChat()">&times;</span></header>
 <div class="msgs" id="msgs"></div>
-<div class="cin"><input id="cin" placeholder="Ask a question…" maxlength="500" onkeydown="if(event.key==='Enter')sendChat()"><button onclick="sendChat()">➤</button></div>
+<div class="cin"><input id="cin" placeholder="Ask a question…" maxlength="500" onkeydown="if(event.key==='Enter')sendChat()"><button class="mic" id="micBtn" onclick="startMic()" aria-label="Speak your question" hidden>🎤</button><button onclick="sendChat()">➤</button></div>
 <div class="cnote">Answers can be wrong and are not medical advice. Please do not share personal details. Verify with NAFDAC.</div>
 </div>
 
@@ -422,13 +425,13 @@ $("vq").placeholder=PH[vf.field];
 function setF(k,v){vf[k]=v;renderFilters();if(vs.q)verifySearch(vs.q,true)}
 async function loadCats(){
 if(!sb||loadCats.done)return;loadCats.done=1;
-try{const {data,error}=await sb.rpc("greenbook_categories");if(error)throw error;
+try{const {data,error}=await sb.rpc("greenbook_categories");if(error)throw error;catList=data.map(c=>c.category);
 $("fCat").innerHTML='<option value="">All categories</option>'+data.slice(0,80).map(c=>`<option value="${esc(c.category)}">${esc(c.category)} (${(+c.n).toLocaleString()})</option>`).join("")}catch(e){}
 }
 const hitsFor=q=>{const w=q.toLowerCase().split(/\s+/).filter(Boolean);return items.filter(x=>w.every(s=>x.title.toLowerCase().includes(s)))};
 function trySearch(t){$("vq").value=t;verifySearch(t)}
 function checkFor(q){$("vq").value=q;verifySearch(q)}
-function go(h){const m=h.match(/^#verify\?q=(.*)$/);if(m){checkFor(decodeURIComponent(m[1]));return}const el=document.querySelector(h);if(el)el.scrollIntoView({behavior:"smooth"})}
+function go(h){if(/^https?:/.test(h)){window.open(h,"_blank","noopener");return}const m=h.match(/^#verify\?q=(.*)$/);if(m){checkFor(decodeURIComponent(m[1]));return}const el=document.querySelector(h);if(el)el.scrollIntoView({behavior:"smooth"})}
 function homeSearch(){verifySearch($("vq").value)}
 function clearResults(){$("results").hidden=true;vs.q="";$("vq").focus();window.scrollTo({top:0,behavior:"smooth"})}
 function toggleFilters(){const f=$("filters");f.hidden=!f.hidden;$("ftBtn").setAttribute("aria-expanded",String(!f.hidden))}
@@ -500,7 +503,7 @@ rest=rest.replace(/^[\s,.!-]+|[\s,.!-]+$/g,"").replace(/^(and|but|so)\b\s*/i,"")
 return {greet:g?g[1].toLowerCase():"",name,rest};
 }
 const nm=()=>userName?", "+userName:"";
-const START_CHIPS=["Check a product","How do I spot a fake?","How do I report one?"];
+const START_CHIPS=["List 5 counterfeit drugs","Check a product","How do I spot a fake?"];
 function greetReply(st){
 const hi=st.greet?hello(st.greet)+(userName?" "+userName:"")+"! 👋":"Nice to meet you"+nm()+"! 👋";
 return hi+" I'm the ChecknVerify assistant. I help you check for fake, counterfeit, banned and unregistered products in Nigeria. What would you like to do?";
@@ -510,7 +513,7 @@ const TALK=[
 [/^\s*(bye|goodbye|see you|good night|later)\b/i,()=>`Goodbye${nm()}! Stay safe, and always check before you buy. 👋`],
 [/how are you|how('?s| is) it going|how you dey|how do you do/i,()=>`I'm doing well, thank you${nm()}! How can I help you check a product today?`],
 [/who are you|what are you|your name|are you (a |an )?(bot|ai|robot|human|real)/i,()=>"I'm the ChecknVerify assistant, an automated helper. I search NAFDAC's public alerts and register to help you check for fake, counterfeit and banned products. I'm not part of NAFDAC and I can make mistakes, so always confirm with NAFDAC."],
-[/what can you do|how can you help|what do you do|^\s*help\b|can you help/i,()=>"I can look up a product or NRN in NAFDAC alerts and the register, explain how to spot fakes, explain what Active or Expired means, and show you how to report a fake product. Just type a product name or NRN."],
+[/what can you do|how can you help|what do you do|^\s*help\b|can you help/i,()=>"I can look up a product or NRN in NAFDAC alerts and the register, explain how to spot fakes, explain what Active or Expired means, list NAFDAC's counterfeit, banned or recalled products (try “list 5 counterfeit drugs”), and show you how to report a fake product. If I can't find something, I'll search NAFDAC's website and the web."],
 [/^\s*(ok|okay|alright|fine|cool|nice|great|yes|yeah|yep|no|nope)[.! ]*$/i,()=>"Alright. What would you like to check?"]
 ];
 const K=(k,a,c)=>({k,a,c});
@@ -525,7 +528,7 @@ K([/\b(active|expired|inactive)\b/i,/mean|status|regist|nrn|valid|what/i],"Activ
 K([/report|complain|call|contact|hotline|email|phone|reach/i,/nafdac|fake|counterfeit|product|seller|pharmacy|suspicious/i],"Keep the product, packaging and receipt and take photos, then use the Report form. Also tell NAFDAC: call 0800-1-NAFDAC (0800-1-623322), email sf.alert@nafdac.gov.ng, or use the NAFDAC Med Safety app. If you feel unwell, get medical care first.",[{label:"Go to report form",href:"#report"},...SPOT]),
 K([/bought|purchased|took|taking|used|using|consumed|ate|drank|gave/i,/fake|counterfeit|expired|bad|suspicious|substandard/i],"Stop using it, and get medical care straight away if you feel unwell. Keep the product, packaging and receipt, take photos, and report it on the Report form and to NAFDAC (0800-1-NAFDAC).",[{label:"Go to report form",href:"#report"}]),
 K([/difference|differ|vs|versus|meaning|mean/i,/counterfeit|falsified|substandard|unregistered/i],"Counterfeit and falsified products pretend to be something they are not. Substandard products fail quality standards. Unregistered products have no NAFDAC registration. A recall pulls a product back from the market. NAFDAC's notices use these terms, so read them closely.",[...SPOT]),
-K([/banned|ban\b|blacklist|recall|watchlist/i,/what|how|where|list|see|find/i],"Banned, blacklisted, recalled and counterfeit notices from NAFDAC are in the Alerts section of this page. Tap one to read the official alert. You can also type a product name here and I'll search them.",[{label:"See all alerts",href:"#banned"}]),
+K([/banned|ban\b|blacklist|recall|watchlist/i,/what|how|where|list|see|find/i],"Banned, blacklisted, recalled and counterfeit notices from NAFDAC are in the Alerts section of this page. Tap one to read the official alert. You can also ask me, for example, “list 5 banned drugs” or type a product name.",[{label:"See all alerts",href:"#banned"}]),
 K([/where|which|safe place|best place/i,/buy|purchase|shop/i],"Buy from licensed pharmacies and established shops, keep your receipt, and check the NRN before you pay. Be wary of hawkers, unlabelled repacked goods and prices far below normal.",[...NRNQ]),
 K([/online|whatsapp|instagram|facebook|jumia|social|website|seller|vendor|hawker/i],"Online and social-media sellers are higher risk. Ask for the NRN and batch number and verify them before paying, avoid sellers who refuse, and prefer licensed pharmacies for medicines. Report suspicious sellers on the Report form.",[...REPORT_CHIPS]),
 K([/risk|danger|harm|side effect|what happens|why/i,/fake|counterfeit|substandard/i],"Fake or substandard products can contain the wrong ingredients or too little of the active ingredient, which can cause treatment failure, poisoning or other harm. NAFDAC's malaria medicine alerts, for example, warn of treatment failure and drug resistance.",[...SPOT]),
@@ -560,7 +563,7 @@ if(rows.length)parts.push(`Greenbook records for “${searchQ(q)}”: ${cr.match
 return {text:parts.join("\n\n"),chips:chipsFor(q,hits,rows)};
 }
 if(toks.length&&(VERDICT.test(q)||q.trim().split(/\s+/).length<=4&&!kb))
-return {text:`I couldn't find a NAFDAC notice or register record matching “${toks.join(" ")}”. That does not mean it is genuine. ${cr.off?"The register isn't connected here, so I only searched alerts. ":"My register copy may be incomplete. "}Check the NRN on greenbook.nafdac.gov.ng.`,chips:[...SPOT,...REPORT_CHIPS]};
+return {text:`I couldn't find a NAFDAC notice or register record matching “${toks.join(" ")}”. That does not mean it is genuine. ${cr.off?"The register isn't connected here, so I only searched alerts. ":"My register copy may be incomplete. "}Check the NRN on greenbook.nafdac.gov.ng.`,chips:[...SPOT,...REPORT_CHIPS],nf:true,term:toks.join(" ")};
 if(kb)return {text:typeof kb.a==="function"?kb.a(q):kb.a,chips:kb.c};
 return {text:"I'm not sure I understood that. I can look up a product or NRN, explain how to spot fakes, explain Active or Expired, or show how to report. What would you like?",chips:START_CHIPS};
 }
@@ -569,23 +572,111 @@ function addChips(list){
 document.querySelectorAll("#msgs .qr").forEach(e=>e.remove());
 if(!list||!list.length)return;
 const d=document.createElement("div");d.className="qr";
-list.forEach(c=>{const o=typeof c==="string"?{label:c}:c,b=document.createElement("button");b.textContent=o.label;b.onclick=()=>{if(o.href){go(o.href);if(innerWidth<700)toggleChat()}else sendChat(o.label)};d.appendChild(b)});
+list.forEach(c=>{const o=typeof c==="string"?{label:c}:c,b=document.createElement("button");b.textContent=o.label;b.onclick=()=>{if(o.href){if(o.fill)$("rProduct").value=o.fill;go(o.href);if(innerWidth<700)toggleChat()}else sendChat(o.label)};d.appendChild(b)});
 $("msgs").appendChild(d);$("msgs").scrollTop=1e6;
 }
-function botSay(text,chips){
-const d=addMsg("bot","");
+function botSay(text,chips,x){
+const d=addMsg("bot","");x=x||{};
 return new Promise(res=>{
-const done=()=>{d.textContent=text;addChips(chips);$("msgs").scrollTop=1e6;res()};
+const done=()=>{
+d.textContent=text;
+if(x.list&&x.list.length){const ol=document.createElement("ol");if(x.start)ol.start=x.start;x.list.forEach(it=>{const li=document.createElement("li");if(it.href){const a=document.createElement("a");a.href=it.href;a.target="_blank";a.rel="noopener";a.textContent=it.t;li.appendChild(a)}else li.textContent=it.t;if(it.sub){const sm=document.createElement("small");sm.textContent=it.sub;li.appendChild(sm)}ol.appendChild(li)});d.appendChild(ol)}
+if(x.sources&&x.sources.length){const sc=document.createElement("div");sc.className="srcs";sc.append("Sources: ");x.sources.slice(0,5).forEach((c,i)=>{const a=document.createElement("a");a.href=c.uri;a.target="_blank";a.rel="noopener";a.textContent=c.title||"Source "+(i+1);sc.appendChild(a)});d.appendChild(sc)}
+if(x.entry){const f=document.createElement("iframe");f.setAttribute("sandbox","allow-popups allow-popups-to-escape-sandbox");f.srcdoc=x.entry;f.style.cssText="border:0;width:100%;height:46px;margin-top:8px";d.appendChild(f)}
+addChips(chips);$("msgs").scrollTop=1e6;res()};
 if(matchMedia("(prefers-reduced-motion:reduce)").matches||text.length>700){done();return}
 let i=0;const step=Math.max(2,Math.ceil(text.length/90)),iv=setInterval(()=>{i+=step;d.textContent=text.slice(0,i);$("msgs").scrollTop=1e6;if(i>=text.length){clearInterval(iv);done()}},18);
 });
 }
+function startMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;const r=new SR();r.lang="en-NG";r.interimResults=false;r.onresult=e=>{$("cin").value=e.results[0][0].transcript;sendChat()};r.onerror=()=>{};r.onend=()=>$("micBtn").classList.remove("rec");$("micBtn").classList.add("rec");r.start()}
+if(window.SpeechRecognition||window.webkitSpeechRecognition)$("micBtn").hidden=false;
 function toggleChat(){const c=$("chat"),open=c.style.display==="flex";c.style.display=open?"none":"flex";if(!open&&!$("msgs").children.length){loadNaf();botSay("Hi! I'm the ChecknVerify assistant. I only cover fake, counterfeit, banned and unregistered products and services in Nigeria. What would you like to do?",START_CHIPS)}}
+/* ---------- list requests ("list 5 counterfeit drugs", "more", "number 2") ---------- */
+const NUMW={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,twelve:12,fifteen:15,twenty:20};
+const ORD={first:1,second:2,third:3,fourth:4,fifth:5,sixth:6,seventh:7,eighth:8,ninth:9,tenth:10};
+const CLS={drug:/\b(drugs?|medicines?|medications?|tablets?|syrups?|injections?|pharmaceuticals?)\b/i,food:/\b(foods?|drinks?|beverages?|groceries)\b/i,cosmetic:/\b(cosmetics?|toothpastes?|soaps?|creams?|skincare)\b/i};
+const CLST={drug:/\bmg\b|tablet|syrup|injection|capsule|suspension|inhal|\bpens?\b|vaccine|drug|medic|artemether|lumefantrine|paracetamol|amoxi|antibiotic|insulin|ozempic|semaglutide|dapagliflozin|budesonide|test kit|needle|syringe|pulmicort|forxiga|augmentin|herceptin/i,food:/milk|rice|noodle|\boil\b|drink|juice|water|formula|food|beverage|sugar|\btea\b|coffee|chocolate|biscuit|yog|mayonnaise|sauce|spice|season|cereal|flour|\bsalt\b|cola|fanta|sprite|malt|energy/i,cosmetic:/toothpaste|soap|cream|lotion|deodorant|shampoo|perfume|hair|skin|cosmetic|colgate|nivea|dove/i};
+const KRE=[[KINDS[1],/\b(banned?|blacklist\w*|prohibit\w*)\b/i],[KINDS[0],/\b(fake|counterfeit\w*|falsified|forged)\b/i],[KINDS[2],/\b(recall\w*|withdrawn)\b/i],[KINDS[3],/\b(substandard|unregistered)\b/i]];
+const KLABEL={[KINDS[0]]:"counterfeit or falsified",[KINDS[1]]:"banned or blacklisted",[KINDS[2]]:"recalled",[KINDS[3]]:"substandard or unregistered"};
+const KSHORT={[KINDS[0]]:"counterfeit",[KINDS[1]]:"banned",[KINDS[2]]:"recalled",[KINDS[3]]:"substandard"};
+const CLSNAME={drug:"drug/medicine",food:"food and drink",cosmetic:"cosmetic",none:""};
+let lastList=null,lastQuery="",webN=0;
+const cleanTitle=t=>t.replace(/^(Updated\s+)?Public Alert No\.?:?\s*\d+[A-Za-z]?\/\d{2,4}\s*[-–—:]*\s*/i,"").replace(/^Alert on (the )?/i,"").replace(/^\w/,c=>c.toUpperCase()).trim();
+function parseList(q){
+const t=q.toLowerCase().trim();
+if(/^(how|why|can|should|does|do|is|are)\b/.test(t)&&!/\b(list|show|give|name|how many)\b/.test(t))return null;
+const kinds=KRE.filter(([,re])=>re.test(t)).map(([k])=>k);
+const cls=Object.keys(CLS).find(k=>CLS[k].test(t))||"";
+const stat=/\b(expired|inactive|not active)\b/.test(t)?"inactive":/\bactive\b/.test(t)?"active":"";
+const verb=/\b(list|show|give|name|display|enumerate|bring|share|get)\b|^(what|which)\b.*\bare\b|^(any|top|latest|recent|newest)\b|^(banned|fake|counterfeit|recalled|substandard|expired|active)\b/.test(t);
+const count=/\b(how many|number of|count)\b/.test(t);
+if(!(kinds.length||cls||stat)||!(verb||count))return null;
+let n=0;const nm=t.match(/\b(\d{1,2})\b/);if(nm)n=+nm[1];
+if(!n)for(const [w,v] of Object.entries(NUMW))if(new RegExp("\\b"+w+"\\b").test(t)){n=v;break}
+if(!n)n=/\ball\b/.test(t)?10:5;
+return {kinds,cls,stat,n:Math.max(1,Math.min(n,15)),count};
+}
+const srcNote=()=>src==="live"?"":"\n(NAFDAC's live feed couldn't be reached, so this comes from a small saved sample.)";
+async function listReply(req,off){
+const kl=req.kinds.length?req.kinds.map(k=>KLABEL[k]).join(" / "):"";
+if(req.stat&&!req.kinds.length)return registryListReply(req,off);
+const base=items.filter(x=>!req.kinds.length||req.kinds.includes(kind(x.title)));
+if(req.count){return {text:`${base.length} of the ${items.length} NAFDAC notices I can see ${req.kinds.length?"are "+kl:"match"}.${srcNote()}`,chips:[`List ${Math.min(5,base.length)||5} ${req.kinds.length?KSHORT[req.kinds[0]]:"counterfeit"} ${req.cls?req.cls+"s":"products"}`,{label:"See all alerts",href:"#banned"}]}}
+let rows=base.filter(x=>!req.cls||CLST[req.cls].test(x.title)),note="";
+if(!rows.length&&req.cls&&base.length){rows=base;note=`I found no ${kl||"matching"} ${CLSNAME[req.cls]} notices among the ${items.length} I can see, so here are the latest ${kl||""} notices of any product type:`}
+if(!rows.length)return {text:`I couldn't find any ${kl||"matching"} notices among the ${items.length} NAFDAC notices I can see.${srcNote()} I'll try NAFDAC's website next.`,chips:[{label:"Open NAFDAC's list",href:NAF+"/category/recalls-and-alerts/"}],nf:true,term:`${kl} ${CLSNAME[req.cls||"none"]} products`.trim()};
+const page=rows.slice(off,off+req.n);
+if(!page.length)return {text:"That's everything I have for that list.",chips:START_CHIPS};
+lastList={req,off:off+page.length,rows,kind:"alert"};
+const left=rows.length-off-page.length;
+const others=Object.keys(KSHORT).filter(k=>!req.kinds.includes(k)).slice(0,2).map(k=>`List 5 ${KSHORT[k]} ${req.cls?req.cls+"s":"products"}`);
+return {text:(note||`Here ${page.length===1?"is":"are"} ${page.length} ${kl||"latest"}${req.cls?" "+CLSNAME[req.cls]:""} alert${page.length>1?"s":""} from NAFDAC (newest first). ${rows.length} match in total.`)+srcNote(),list:page.map(x=>({t:cleanTitle(x.title),href:x.link,sub:fmt(x.date)+" · "+kind(x.title)})),start:off+1,chips:[...(left>0?[`Show ${Math.min(req.n,left)} more`]:[]),...others,{label:"See all alerts",href:"#banned"}]};
+}
+async function registryListReply(req,off){
+if(!sb)return {text:"The register isn't connected here, so I can't list products by status. I can list NAFDAC alerts instead.",chips:["List 5 counterfeit drugs"]};
+const rx={drug:/drug/i,food:/food/i,cosmetic:/cosmet/i}[req.cls];
+const category=rx?(catList.find(c=>rx.test(c))||""):"";
+const r=await greenbookSearch("",off,{status:req.stat,category});
+if(r.err||r.empty||!r.rows.length)return {text:"I couldn't get that list from the register. Try the search box and Filters at the top of the page.",chips:START_CHIPS};
+const rows=r.rows.slice(0,req.n);
+lastList={req,off:off+rows.length,rows,kind:"reg"};
+return {text:`Here ${rows.length===1?"is":"are"} ${rows.length} ${req.stat==="inactive"?"not-active":"Active"} ${category?category.toLowerCase():"products"} from the register (${(r.matches||0).toLocaleString()} match). These are the first few alphabetically, not a ranking:`,list:rows.map(x=>({t:`${x.name} (NRN ${x.nrn||"n/a"})`,href:x.id?GB+"/products/details/"+x.id:"",sub:`${x.status||"status unknown"}${x.applicant?" · "+x.applicant:""}`})),start:off+1,chips:[`Show ${req.n} more`,{label:"Open search filters",href:"#check"}]};
+}
+function pickIndex(q){
+const t=q.toLowerCase();if(!lastList||t.split(/\s+/).length>7)return 0;
+const m=t.match(/\b(\d{1,2})(?:st|nd|rd|th)?\b/);if(m&&!/\bmore\b/.test(t))return +m[1];
+for(const [w,v] of Object.entries(ORD))if(new RegExp("\\b"+w+"\\b").test(t))return v;
+return 0;
+}
+function detailReply(k){
+const it=lastList.rows[k-1];
+if(!it)return {text:`I don't have an item ${k} in that list.`,chips:START_CHIPS};
+const more=lastList.off<lastList.rows.length||lastList.kind==="reg"?[`Show ${lastList.req.n} more`]:[];
+if(lastList.kind==="alert")return {text:`${cleanTitle(it.title)}\nPublished ${fmt(it.date)} · ${kind(it.title)}\nNAFDAC notices often cover specific batches or look-alike products only, so read the official notice for the details.`,list:[{t:"Open the official NAFDAC notice",href:it.link}],chips:[{label:"Report this product",href:"#report",fill:cleanTitle(it.title).slice(0,100)},...more]};
+return {text:`${it.name}\nNRN ${it.nrn||"n/a"} · ${it.status||"status unknown"}${it.expiry?" · expires "+it.expiry:""}\n${[it.applicant,it.form,it.strengths,it.category].filter(Boolean).join(" · ")}`,list:it.id?[{t:"Open on the Greenbook",href:GB+"/products/details/"+it.id}]:[],chips:[{label:"Report this product",href:"#report",fill:String(it.name).slice(0,100)},...more]};
+}
+/* ---------- nothing found: search NAFDAC's website, then the web ---------- */
+async function nafdacSearch(term){
+try{const r=await getJson(`${NAF}/wp-json/wp/v2/search?search=${encodeURIComponent(term)}&per_page=5&_fields=title,url`);return r.map(x=>({t:decode(x.title),href:x.url})).filter(x=>x.href)}catch(e){return []}
+}
+async function webFallback(q,term){
+webN++;
+const clean=(term||(q.match(/\b(?:for|about|on)\s+(.+)$/i)||[])[1]||searchQ(q)||q).replace(/[?.!]+$/,"").trim().slice(0,80);
+const site=await nafdacSearch(clean);
+let ai=null;
+if(sb&&CFG.aiBot&&aiFails<2){try{const {data,error}=await sb.functions.invoke("ai-bot",{body:{messages:[{role:"user",content:`Is “${clean}” reported as fake, counterfeit, banned, recalled or unregistered in Nigeria? Find information.`}],web:true}});if(!error&&data&&data.reply)ai=data}catch(e){}}
+const enc=encodeURIComponent(clean);
+const chips=[{label:"Search NAFDAC website",href:NAF+"/?s="+enc},{label:"Search the web",href:"https://www.google.com/search?q="+encodeURIComponent(clean+" NAFDAC")},...REPORT_CHIPS];
+const sl=site.map(x=>({t:x.t,href:x.href}));
+if(ai)return {text:ai.reply+(sl.length?"\n\nFrom NAFDAC's website:":""),list:sl,sources:ai.sources,entry:ai.searchEntry,chips};
+if(sl.length)return {text:`I couldn't find “${clean}” in NAFDAC's alerts or the register. These pages on NAFDAC's website may help:`,list:sl,chips};
+return {text:`I couldn't find “${clean}” in NAFDAC's alerts, the register, or NAFDAC's website search. That does not mean it is genuine. Try the search links below, check the NRN on the Greenbook, or report it.`,chips};
+}
 let lastSend=0,sentN=0,aiFails=0;
 async function sendChat(text){
 const t=(text||$("cin").value).trim();if(!t)return;
 if(Date.now()-lastSend<1200){addMsg("bot","One moment please…");return}
-if(sentN>=25){addMsg("bot","You have reached the chat limit for this visit. Please refresh the page, or use the FAQ and search boxs.");return}
+if(sentN>=25){addMsg("bot","You have reached the chat limit for this visit. Please refresh the page, or use the FAQ and the search box.");return}
 lastSend=Date.now();sentN++;$("cin").value="";
 document.querySelectorAll("#msgs .qr").forEach(e=>e.remove());
 addMsg("user",t);hist.push({role:"user",content:t.slice(0,500)});
@@ -597,20 +688,29 @@ if(!sub)out={text:greetReply(st),chips:START_CHIPS};
 else{prefix=(st.greet?hello(st.greet):"Nice to meet you")+(userName?" "+userName:"")+"! ";q=st.rest}
 }
 if(!out){const tk=TALK.find(([re])=>re.test(q));if(tk)out={text:tk[1](),chips:START_CHIPS}}
+const searching=()=>{ty.className="m bot";ty.textContent="🔎 Searching NAFDAC's website and the web…"};
+if(!out&&lastList&&/^\s*(more|next|show more|show next|continue|another|again)\b|\b\d+\s+more\b/i.test(q))out=await listReply(lastList.req,lastList.off);
+if(!out){const req=parseList(q);if(req)out=await listReply(req,0)}
+if(!out){const k=pickIndex(q);if(k)out=detailReply(k)}
+if(!out&&!chatToks(q).length&&/\b(it|this|that|these|those|them)\b/i.test(q)&&lastQuery)q=q+" "+lastQuery;
 if(!out){
-const hits=findAlerts(q),cr=await chatRows(q),kb0=bestKB(q);
+const explicit=/\b(search|look ?up|google|find out|research)\b.*\b(web|online|internet|google|nafdac)\b/i.test(q);
+const hits=findAlerts(q),cr=await chatRows(q),kb0=bestKB(q),toks=chatToks(q);
 const local=!!q.match(NRN_RE)||(kb0&&kb0.k.length>=2&&/^(how|what|where|why|can|should|is|does|do)\b/i.test(q.trim())&&!hits.length&&!cr.rows.length);
-if(sb&&CFG.aiBot&&aiFails<2&&!local){
+if(hits.length||cr.rows.length)lastQuery=searchQ(q);
+if(explicit&&webN<6){searching();out=await webFallback(q)}
+else if(sb&&CFG.aiBot&&aiFails<2&&!local&&(hits.length||cr.rows.length||!toks.length||webN>=6)){
 try{
 const registry=(cr.matches?`TOTAL_MATCHES ${cr.matches} (${cr.activeN} active)\n`:"")+cr.rows.slice(0,5).map(x=>`${x.name} | NRN ${x.nrn||"n/a"} | status ${x.status||"unknown"} | expiry ${x.expiry||"not shown"} | ${x.applicant||""}`).join("\n");
 const {data,error}=await sb.functions.invoke("ai-bot",{body:{messages:hist.slice(-8),context:hits.slice(0,5).map(x=>fmt(x.date)+": "+x.title).join("\n"),registry}});
 if(error||!data||!data.reply)throw 0;
 out={text:data.reply,chips:data.scoped?START_CHIPS:chipsFor(q,hits,cr.rows)};aiFails=0;
 }catch(e){aiFails++;out=localReply(q,hits,cr);if(aiFails===1)out.text+="\n\n(The AI assistant is busy, so this is a basic answer.)"}
-}else{await sleep(500);out=localReply(q,hits,cr)}
+}else if(!local&&!hits.length&&!cr.rows.length&&toks.length&&webN<6){searching();out=await webFallback(q)}
+else{await sleep(500);out=localReply(q,hits,cr);if(out.nf&&webN<6){searching();out=await webFallback(q,out.term)}}
 }
 ty.remove();const full=prefix+out.text;
-await botSay(full,out.chips);hist.push({role:"assistant",content:full.slice(0,500)});
+await botSay(full,out.chips,out);hist.push({role:"assistant",content:full.slice(0,500)});
 }
 
 /* ---------- reporting (no login) ---------- */
@@ -648,7 +748,7 @@ function newReport(){$("done").style.display="none";$("formCard").style.display=
 renderFilters();
 sb&&gbStats().then(st=>{renderDash();if(st&&st.total)$("homeSub").textContent=`Search ${st.total.toLocaleString()} NAFDAC-registered products by name or NRN and see whether they are Active.`});
 /* ---------- dashboard ---------- */
-let dashKey="";
+let dashKey="",catList=[];
 const fmtN=n=>n>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,"")+"M":n.toLocaleString();
 function fitText(el){el.style.fontSize="";let fs=parseFloat(getComputedStyle(el).fontSize);while(el.scrollWidth>el.clientWidth&&fs>12){fs-=1;el.style.fontSize=fs+"px"}}
 function countTo(el,n){
